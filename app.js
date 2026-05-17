@@ -372,7 +372,8 @@ function renderCriterion() {
 
   const result = computeCriterion(criterion);
   const readiness = readinessText(result.completion, result.criticalIssues);
-  const ringColor = readiness.level === "ready" ? "var(--green)" : readiness.level === "watch" ? "var(--amber)" : "var(--red)";
+  const readyLevels = ["good", "very-good", "excellent"];
+  const ringColor = readyLevels.includes(readiness.level) ? "var(--green)" : readiness.level === "watch" ? "var(--amber)" : "var(--red)";
 
   el.criterionFocus.innerHTML = `
     <div>
@@ -512,13 +513,25 @@ function computeAggregate(criteria) {
 function computeCriterion(criterion) {
   let earned = 0;
   let criticalIssues = 0;
+  let missingCount = 0;
+  let availableCount = 0;
 
   criterion.evidencePlan.forEach((item) => {
     const current = getStatus(criterion.id, item.evidenceKey);
     const factor = STATUS[current].factor;
     earned += item.weight * factor;
+    if (current === "available") availableCount += 1;
+    if (current === "missing") missingCount += 1;
     if (item.role === "دليل حاكم" && factor < 1) criticalIssues += 1;
   });
+
+  if (criterion.evidencePlan.length > 0 && (missingCount === criterion.evidencePlan.length || availableCount === 0)) {
+    return {
+      completion: 0,
+      lost: 100,
+      criticalIssues: Math.max(criticalIssues, 1),
+    };
+  }
 
   const completion = Math.min(100, roundWeight(earned));
   return {
@@ -529,24 +542,38 @@ function computeCriterion(criterion) {
 }
 
 function readinessText(score, criticalIssues) {
-  if (criticalIssues > 0 || score < 60) {
+  if (criticalIssues > 0) {
     return {
-      level: "blocked",
-      title: "غير جاهز",
-      detail: "يوجد نقص في دليل حاكم أو فجوة كبيرة؛ أثره يمنع قبول المحك بصيغته الحالية.",
+      level: score < 60 ? "blocked" : "watch",
+      title: "بحاجة إلى استكمال",
+      detail: "توجد فجوة مؤثرة في الأدلة؛ لا يوصى بكتابة المحك قبل استكمالها أو تعويضها بدليل مكافئ.",
     };
   }
   if (score < 80) {
     return {
-      level: "watch",
-      title: "مقبول بحذر",
-      detail: "يمكن بناء المحك مبدئياً، لكن النقص الحالي سيضعف قوة الاستدلال ويحتاج تعويضاً واضحاً.",
+      level: score < 60 ? "blocked" : "watch",
+      title: "غير كاف للكتابة الجيدة",
+      detail: "نسبة الأدلة المتاحة أقل من الحد المناسب للكتابة بجودة جيدة؛ يلزم استكمال الأدلة الأهم أولاً.",
+    };
+  }
+  if (score >= 99.95) {
+    return {
+      level: "excellent",
+      title: "كتابة بجودة ممتازة",
+      detail: "جميع الأدلة المطلوبة متوفرة؛ يمكن كتابة المحك بجودة ممتازة وباستدلال مكتمل.",
+    };
+  }
+  if (score >= 90) {
+    return {
+      level: "very-good",
+      title: "كتابة بجودة جيدة جداً",
+      detail: "الأدلة المتاحة قوية جداً، وما تبقى لا يمنع كتابة محك رصين بجودة جيدة جداً.",
     };
   }
   return {
-    level: "ready",
-    title: "جاهز للكتابة",
-    detail: "الأدلة المتاحة كافية لبناء المحك، والنواقص المتبقية لا تغيّر الحكم العام.",
+    level: "good",
+    title: "كتابة بجودة جيدة",
+    detail: "الأدلة المتاحة كافية لكتابة المحك بجودة جيدة، مع إمكانية تحسينه باستكمال النواقص المتبقية.",
   };
 }
 
