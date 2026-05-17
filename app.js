@@ -372,7 +372,8 @@ function renderCriterion() {
 
   const result = computeCriterion(criterion);
   const readiness = readinessText(result.completion, result.criticalIssues);
-  const ringColor = readiness.level === "ready" ? "var(--green)" : readiness.level === "watch" ? "var(--amber)" : "var(--red)";
+  const readyLevels = ["good", "very-good", "excellent"];
+  const ringColor = readyLevels.includes(readiness.level) ? "var(--green)" : readiness.level === "watch" ? "var(--amber)" : "var(--red)";
 
   el.criterionFocus.innerHTML = `
     <div>
@@ -543,10 +544,24 @@ function readinessText(score, criticalIssues) {
       detail: "يمكن بناء المحك مبدئياً، لكن النقص الحالي سيضعف قوة الاستدلال ويحتاج تعويضاً واضحاً.",
     };
   }
+  if (score >= 99.95) {
+    return {
+      level: "excellent",
+      title: "كتابة بجودة ممتازة",
+      detail: "جميع الأدلة المطلوبة متوفرة؛ يمكن كتابة المحك بجودة ممتازة وباستدلال مكتمل.",
+    };
+  }
+  if (score >= 90) {
+    return {
+      level: "very-good",
+      title: "كتابة بجودة جيدة جداً",
+      detail: "الأدلة المتاحة قوية جداً، وما تبقى لا يمنع كتابة محك رصين بجودة جيدة جداً.",
+    };
+  }
   return {
-    level: "ready",
-    title: "جاهز للكتابة",
-    detail: "الأدلة المتاحة كافية لبناء المحك، والنواقص المتبقية لا تغيّر الحكم العام.",
+    level: "good",
+    title: "كتابة بجودة جيدة",
+    detail: "الأدلة المتاحة كافية لكتابة المحك بجودة جيدة، مع إمكانية تحسينه باستكمال النواقص المتبقية.",
   };
 }
 
