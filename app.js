@@ -16,6 +16,7 @@ const state = {
   standard: "all",
   selectedCriterionId: "",
   query: "",
+  pickerOpen: false,
   statuses: loadStatuses(),
 };
 
@@ -30,7 +31,11 @@ const el = {
   standardFilters: document.querySelector("#standardFilters"),
   criterionList: document.querySelector("#criterionList"),
   criterionSearch: document.querySelector("#criterionSearch"),
-  criterionSelect: document.querySelector("#criterionSelect"),
+  criterionPicker: document.querySelector("#criterionPicker"),
+  criterionTrigger: document.querySelector("#criterionTrigger"),
+  criterionTriggerText: document.querySelector("#criterionTriggerText"),
+  criterionMenu: document.querySelector("#criterionMenu"),
+  criterionMenuList: document.querySelector("#criterionMenuList"),
   criterionFocus: document.querySelector("#criterionFocus"),
   evidenceList: document.querySelector("#evidenceList"),
   evidenceCount: document.querySelector("#evidenceCount"),
@@ -76,6 +81,7 @@ function bindEvents() {
       state.program = button.dataset.program;
       state.standard = "all";
       state.query = "";
+      state.pickerOpen = false;
       el.criterionSearch.value = "";
       state.selectedCriterionId = programs[state.program].criteria[0]?.id ?? "";
       render();
@@ -84,19 +90,41 @@ function bindEvents() {
 
   el.criterionSearch.addEventListener("input", (event) => {
     state.query = event.target.value.trim();
+    state.pickerOpen = false;
     ensureVisibleCriterion();
     render();
   });
 
-  el.criterionSelect.addEventListener("change", (event) => {
-    state.selectedCriterionId = event.target.value;
+  el.criterionTrigger.addEventListener("click", () => {
+    state.pickerOpen = !state.pickerOpen;
+    renderCriterionOptions();
+  });
+
+  el.criterionMenuList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-picker-criterion]");
+    if (!button) return;
+    state.selectedCriterionId = button.dataset.pickerCriterion;
+    state.pickerOpen = false;
     render();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!state.pickerOpen || el.criterionPicker.contains(event.target)) return;
+    state.pickerOpen = false;
+    renderCriterionOptions();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!state.pickerOpen || event.key !== "Escape") return;
+    state.pickerOpen = false;
+    renderCriterionOptions();
   });
 
   el.standardFilters.addEventListener("click", (event) => {
     const button = event.target.closest("[data-standard]");
     if (!button) return;
     state.standard = button.dataset.standard;
+    state.pickerOpen = false;
     ensureVisibleCriterion();
     render();
   });
@@ -105,6 +133,7 @@ function bindEvents() {
     const button = event.target.closest("[data-criterion]");
     if (!button) return;
     state.selectedCriterionId = button.dataset.criterion;
+    state.pickerOpen = false;
     render();
   });
 
@@ -339,10 +368,28 @@ function renderStandards() {
 function renderCriterionOptions() {
   const criteria = filteredCriteria();
   ensureVisibleCriterion(criteria);
-  el.criterionSelect.innerHTML = criteria
-    .map((criterion) => `<option value="${criterion.id}">${criterion.id} - ${escapeHtml(criterion.text)}</option>`)
+  const current = selectedCriterion();
+  el.criterionTrigger.disabled = criteria.length === 0;
+  el.criterionTrigger.setAttribute("aria-expanded", String(state.pickerOpen));
+  el.criterionTriggerText.textContent = current ? `${current.id} - ${current.text}` : "لا توجد محكات مطابقة";
+  el.criterionMenu.hidden = !state.pickerOpen;
+  el.criterionMenuList.innerHTML = criteria
+    .map((criterion) => {
+      const selected = criterion.id === state.selectedCriterionId;
+      return `
+        <button
+          class="criterion-menu-option ${selected ? "is-active" : ""}"
+          type="button"
+          data-picker-criterion="${criterion.id}"
+          role="option"
+          aria-selected="${selected}"
+        >
+          <strong>${criterion.id}</strong>
+          <span>${escapeHtml(criterion.text)}</span>
+        </button>
+      `;
+    })
     .join("");
-  el.criterionSelect.value = state.selectedCriterionId;
 }
 
 function renderCriteriaList() {

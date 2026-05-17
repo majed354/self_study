@@ -95,10 +95,24 @@
             <section class="overview-band" id="overviewBand"></section>
 
             <section class="criterion-tools">
-              <label class="field">
-                <span>المحك</span>
-                <select id="criterionSelect"></select>
-              </label>
+              <div class="field">
+                <span id="criterionPickerLabel">المحك</span>
+                <div class="criterion-picker" id="criterionPicker">
+                  <button
+                    class="criterion-trigger"
+                    id="criterionTrigger"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-labelledby="criterionPickerLabel criterionTriggerText"
+                  >
+                    <span id="criterionTriggerText"></span>
+                  </button>
+                  <div class="criterion-menu" id="criterionMenu" hidden>
+                    <div class="criterion-menu-list" id="criterionMenuList" role="listbox" aria-labelledby="criterionPickerLabel"></div>
+                  </div>
+                </div>
+              </div>
               <div class="status-legend" id="statusLegend"></div>
             </section>
 

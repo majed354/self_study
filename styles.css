@@ -432,16 +432,101 @@ h1 {
   font-weight: 800;
 }
 
-.field select {
+.criterion-picker {
+  position: relative;
+  min-width: 0;
+}
+
+.criterion-trigger {
+  display: flex;
   min-height: 46px;
   width: 100%;
   min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
-  padding: 0 12px;
+  padding: 10px 12px;
   outline: none;
+  text-align: start;
+}
+
+.criterion-trigger::after {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  content: "";
+  opacity: 0.62;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.criterion-trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.criterion-trigger:hover,
+.criterion-trigger:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(35, 111, 89, 0.12);
+}
+
+.criterion-menu {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline: 0;
+  z-index: 20;
+  max-height: min(360px, calc(100vh - 260px));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 18px 44px rgba(24, 33, 31, 0.16);
+  overflow: hidden;
+}
+
+.criterion-menu-list {
+  display: grid;
+  max-height: inherit;
+  overflow: auto;
+  padding: 6px;
+}
+
+.criterion-menu-option {
+  display: grid;
+  width: 100%;
+  min-height: 50px;
+  gap: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  padding: 10px;
+  text-align: start;
+}
+
+.criterion-menu-option:hover,
+.criterion-menu-option:focus-visible,
+.criterion-menu-option.is-active {
+  background: var(--green-2);
+  outline: none;
+}
+
+.criterion-menu-option strong {
+  font-size: 0.88rem;
+}
+
+.criterion-menu-option span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .status-legend {
