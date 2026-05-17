@@ -467,9 +467,7 @@ h1 {
 }
 
 .legend-pill.available,
-.state-pill.good,
-.state-pill.very-good,
-.state-pill.excellent,
+.state-pill.ready,
 .tag.core {
   background: var(--green-2);
   color: var(--green);
