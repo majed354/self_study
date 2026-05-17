@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="أداة حصر أدلة الدراسة الذاتية وقياس جاهزية المحكات لبرامج البكالوريوس والدراسات العليا."
+    />
+    <title>جاهزية الدراسة الذاتية</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="m21 21-4.35-4.35" />
+        <circle cx="11" cy="11" r="7" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+      </symbol>
+      <symbol id="i-x" viewBox="0 0 24 24">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="11" height="11" rx="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      </symbol>
+      <symbol id="i-print" viewBox="0 0 24 24">
+        <path d="M6 9V2h12v7" />
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+        <path d="M6 14h12v8H6z" />
+      </symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24">
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <path d="M3 4v6h6" />
+      </symbol>
+      <symbol id="i-filter" viewBox="0 0 24 24">
+        <path d="M22 3H2l8 9v7l4 2v-9z" />
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">مركز الاعتماد الأكاديمي</p>
+          <h1>جاهزية الدراسة الذاتية</h1>
+        </div>
+        <div class="topbar-actions" aria-label="إجراءات المحك">
+          <button class="icon-button" id="copyCriterion" type="button" aria-label="نسخ قائمة المحك">
+            <svg><use href="#i-copy"></use></svg>
+          </button>
+          <button class="icon-button" id="printPage" type="button" aria-label="طباعة التقرير">
+            <svg><use href="#i-print"></use></svg>
+          </button>
+          <button class="icon-button danger" id="resetCriterion" type="button" aria-label="إعادة ضبط المحك">
+            <svg><use href="#i-reset"></use></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="program-tabs" role="tablist" aria-label="نوع البرنامج">
+        <button class="program-tab is-active" id="tab-ug" type="button" role="tab" data-program="ug" aria-selected="true">
+          <span>البكالوريوس</span>
+          <strong id="ugTabCount">96 محك</strong>
+        </button>
+        <button class="program-tab" id="tab-pg" type="button" role="tab" data-program="pg" aria-selected="false">
+          <span>الدراسات العليا</span>
+          <strong id="pgTabCount">56 محك</strong>
+        </button>
+      </section>
+
+      <main class="workspace">
+        <aside class="rail" aria-label="المحكات والمعايير">
+          <div class="searchbox">
+            <svg><use href="#i-search"></use></svg>
+            <input id="criterionSearch" type="search" placeholder="بحث برقم المحك أو نصه" autocomplete="off" />
+          </div>
+
+          <div class="filter-title">
+            <svg><use href="#i-filter"></use></svg>
+            <span>المعايير</span>
+          </div>
+          <div class="standard-list" id="standardFilters"></div>
+          <div class="criterion-list" id="criterionList"></div>
+        </aside>
+
+        <section class="stage" aria-live="polite">
+          <div class="loading" id="loadingState">جاري تحميل بيانات الأدلة...</div>
+
+          <div class="app-content" id="appContent" hidden>
+            <section class="overview-band" id="overviewBand"></section>
+
+            <section class="criterion-tools">
+              <label class="field">
+                <span>المحك</span>
+                <select id="criterionSelect"></select>
+              </label>
+              <div class="status-legend" id="statusLegend"></div>
+            </section>
+
+            <section class="criterion-focus" id="criterionFocus"></section>
+
+            <section class="evidence-layout">
+              <div>
+                <div class="section-heading">
+                  <h2>الأدلة المطلوبة</h2>
+                  <span id="evidenceCount"></span>
+                </div>
+                <div class="evidence-list" id="evidenceList"></div>
+              </div>
+
+              <aside class="impact-panel" id="impactPanel" aria-label="أثر النقص"></aside>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
