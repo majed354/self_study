@@ -4,19 +4,20 @@
     "college": "كلية الشريعة والأنظمة",
     "university": "جامعة الطائف",
     "version": "4.3",
-    "last_updated": "2026-05-17",
+    "last_updated": "2026-06-03",
     "title": "حصر أدلة الدراسة الذاتية — برنامج البكالوريوس",
     "program_type": "بكالوريوس",
     "template": "TP-102 SSRP — محكات ملف الدراسة الذاتية",
     "kpi_model": "DP-101 — مؤشرات أداء البرنامج",
     "criteria_source": "ملفات مساندة/tp-102-ssrp-ar-1.docx",
     "evidence_source": "حصر الأدلة.xlsx مع مواءمة مباشرة لترقيم محكات Word",
-    "notes": "المحكات مطابقة لملف Word الرسمي، وجميع صفوف الأدلة في ملف Excel أُدرجت تحت أقرب محك رسمي بعد اختلاف الترقيم.",
+    "notes": "المحكات مطابقة لملف Word الرسمي، وجميع صفوف الأدلة في ملف Excel أُدرجت تحت أقرب محك رسمي بعد اختلاف الترقيم. وأضيفت أدلة حصر كتب مكتبات الجامعة للمحك 5-0-1.",
     "total_standards": 5,
     "total_criteria": 48,
-    "total_evidence": 503,
+    "total_evidence": 506,
     "excel_evidence_rows": 503,
-    "old_criteria_mapped": 96
+    "old_criteria_mapped": 96,
+    "library_books_source": "data/library-books.json"
   },
   "standards": [
     {
@@ -4355,6 +4356,27 @@
               "source_criterion": "excel:6.0.5",
               "source_match": 0.0,
               "old_number": 479
+            },
+            {
+              "id": 21,
+              "description": "تقرير حصر كتب مكتبات الجامعة التي تخدم البرنامج، مصنفة إلى مصادر تخصصية أساسية ومساندة، مع أعداد النسخ والفروع وأرقام التصنيف.",
+              "notes": "مرتبط بتبويب كتب المكتبة وبملف data/library-books.json المستخرج من ملف قائمة الكتب.",
+              "source_criterion": "library-books:5-0-1",
+              "source_match": 1
+            },
+            {
+              "id": 22,
+              "description": "ملف CSV أو تقرير PDF مستخرج من تبويب كتب المكتبة يوضح الكتب المرتبطة بالبرنامج وحالة توفرها في مكتبات الجامعة.",
+              "notes": "مرتبط بتبويب كتب المكتبة وبملف data/library-books.json المستخرج من ملف قائمة الكتب.",
+              "source_criterion": "library-books:5-0-1",
+              "source_match": 1
+            },
+            {
+              "id": 23,
+              "description": "مصفوفة ربط الكتب التخصصية والمساندة ببرامج الكلية لاستخدامها في تقدير كفاية مصادر التعلم وتحديث الاحتياج.",
+              "notes": "مرتبط بتبويب كتب المكتبة وبملف data/library-books.json المستخرج من ملف قائمة الكتب.",
+              "source_criterion": "library-books:5-0-1",
+              "source_match": 1
             }
           ]
         },

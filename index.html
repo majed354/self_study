@@ -41,6 +41,15 @@
       <symbol id="i-filter" viewBox="0 0 24 24">
         <path d="M22 3H2l8 9v7l4 2v-9z" />
       </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <path d="M7 10l5 5 5-5" />
+        <path d="M12 15V3" />
+      </symbol>
+      <symbol id="i-book" viewBox="0 0 24 24">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
+      </symbol>
     </svg>
 
     <div class="app-shell">
@@ -49,7 +58,7 @@
           <p class="eyebrow">مركز الاعتماد الأكاديمي</p>
           <h1>جاهزية الدراسة الذاتية</h1>
         </div>
-        <div class="topbar-actions" aria-label="إجراءات المحك">
+        <div class="topbar-actions" id="criteriaActions" aria-label="إجراءات المحك">
           <button class="icon-button" id="copyCriterion" type="button" aria-label="نسخ قائمة المحك">
             <svg><use href="#i-copy"></use></svg>
           </button>
@@ -62,76 +71,164 @@
         </div>
       </header>
 
-      <section class="program-tabs" role="tablist" aria-label="نوع البرنامج">
-        <button class="program-tab is-active" id="tab-ug" type="button" role="tab" data-program="ug" aria-selected="true">
-          <span>البكالوريوس</span>
-          <strong id="ugTabCount">48 محك</strong>
+      <section class="mode-tabs" role="tablist" aria-label="مساحة العمل">
+        <button class="mode-tab is-active" type="button" role="tab" data-view="criteria" aria-selected="true">
+          <svg><use href="#i-check"></use></svg>
+          <span>محكات الدراسة الذاتية</span>
         </button>
-        <button class="program-tab" id="tab-pg" type="button" role="tab" data-program="pg" aria-selected="false">
-          <span>الدراسات العليا</span>
-          <strong id="pgTabCount">56 محك</strong>
+        <button class="mode-tab" type="button" role="tab" data-view="library" aria-selected="false">
+          <svg><use href="#i-book"></use></svg>
+          <span>كتب المكتبة</span>
         </button>
       </section>
 
-      <main class="workspace">
-        <aside class="rail" aria-label="المحكات والمعايير">
-          <div class="searchbox">
-            <svg><use href="#i-search"></use></svg>
-            <input id="criterionSearch" type="search" placeholder="بحث برقم المحك أو نصه" autocomplete="off" />
-          </div>
+      <section class="view-panel" id="criteriaView">
+        <section class="program-tabs" role="tablist" aria-label="نوع البرنامج">
+          <button class="program-tab is-active" id="tab-ug" type="button" role="tab" data-program="ug" aria-selected="true">
+            <span>البكالوريوس</span>
+            <strong id="ugTabCount">48 محك</strong>
+          </button>
+          <button class="program-tab" id="tab-pg" type="button" role="tab" data-program="pg" aria-selected="false">
+            <span>الدراسات العليا</span>
+            <strong id="pgTabCount">56 محك</strong>
+          </button>
+        </section>
 
-          <div class="filter-title">
-            <svg><use href="#i-filter"></use></svg>
-            <span>المعايير</span>
-          </div>
-          <div class="standard-list" id="standardFilters"></div>
-          <div class="criterion-list" id="criterionList"></div>
-        </aside>
+        <main class="workspace">
+          <aside class="rail" aria-label="المحكات والمعايير">
+            <div class="searchbox">
+              <svg><use href="#i-search"></use></svg>
+              <input id="criterionSearch" type="search" placeholder="بحث برقم المحك أو نصه" autocomplete="off" />
+            </div>
 
-        <section class="stage" aria-live="polite">
-          <div class="loading" id="loadingState">جاري تحميل بيانات الأدلة...</div>
+            <div class="filter-title">
+              <svg><use href="#i-filter"></use></svg>
+              <span>المعايير</span>
+            </div>
+            <div class="standard-list" id="standardFilters"></div>
+            <div class="criterion-list" id="criterionList"></div>
+          </aside>
 
-          <div class="app-content" id="appContent" hidden>
-            <section class="overview-band" id="overviewBand"></section>
+          <section class="stage" aria-live="polite">
+            <div class="loading" id="loadingState">جاري تحميل بيانات الأدلة...</div>
 
-            <section class="criterion-tools">
-              <div class="field">
-                <span id="criterionPickerLabel">المحك</span>
-                <div class="criterion-picker" id="criterionPicker">
-                  <button
-                    class="criterion-trigger"
-                    id="criterionTrigger"
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                    aria-labelledby="criterionPickerLabel criterionTriggerText"
-                  >
-                    <span id="criterionTriggerText"></span>
-                  </button>
-                  <div class="criterion-menu" id="criterionMenu" hidden>
-                    <div class="criterion-menu-list" id="criterionMenuList" role="listbox" aria-labelledby="criterionPickerLabel"></div>
+            <div class="app-content" id="appContent" hidden>
+              <section class="overview-band" id="overviewBand"></section>
+
+              <section class="criterion-tools">
+                <div class="field">
+                  <span id="criterionPickerLabel">المحك</span>
+                  <div class="criterion-picker" id="criterionPicker">
+                    <button
+                      class="criterion-trigger"
+                      id="criterionTrigger"
+                      type="button"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                      aria-labelledby="criterionPickerLabel criterionTriggerText"
+                    >
+                      <span id="criterionTriggerText"></span>
+                    </button>
+                    <div class="criterion-menu" id="criterionMenu" hidden>
+                      <div class="criterion-menu-list" id="criterionMenuList" role="listbox" aria-labelledby="criterionPickerLabel"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="status-legend" id="statusLegend"></div>
-            </section>
+                <div class="status-legend" id="statusLegend"></div>
+              </section>
 
-            <section class="criterion-focus" id="criterionFocus"></section>
+              <section class="criterion-focus" id="criterionFocus"></section>
 
-            <section class="evidence-layout">
-              <div>
-                <div class="section-heading">
-                  <h2>الأدلة المطلوبة</h2>
-                  <span id="evidenceCount"></span>
+              <section class="evidence-layout">
+                <div>
+                  <div class="section-heading">
+                    <h2>الأدلة المطلوبة</h2>
+                    <span id="evidenceCount"></span>
+                  </div>
+                  <div class="evidence-list" id="evidenceList"></div>
                 </div>
-                <div class="evidence-list" id="evidenceList"></div>
-              </div>
 
-              <aside class="impact-panel" id="impactPanel" aria-label="أثر النقص"></aside>
-            </section>
+                <aside class="impact-panel" id="impactPanel" aria-label="أثر النقص"></aside>
+              </section>
+            </div>
+          </section>
+        </main>
+      </section>
+
+      <section class="library-view" id="libraryView" hidden>
+        <section class="library-hero">
+          <div>
+            <p class="eyebrow">مصادر التعلم</p>
+            <h2>بيانات كتب مكتبات الجامعة</h2>
+            <p>بحث وتصفية وتصدير للكتب المرتبطة بالبرامج، مع إظهار عدد النسخ وتوزيعها على المكتبات لخدمة دليل المحك الخامس.</p>
+          </div>
+          <div class="library-actions">
+            <button class="text-button" id="exportLibraryCsv" type="button">
+              <svg><use href="#i-download"></use></svg>
+              CSV
+            </button>
+            <button class="text-button" id="exportLibraryPdf" type="button">
+              <svg><use href="#i-print"></use></svg>
+              PDF
+            </button>
           </div>
         </section>
-      </main>
+
+        <section class="library-controls" aria-label="بحث كتب المكتبة">
+          <div class="searchbox library-searchbox">
+            <svg><use href="#i-search"></use></svg>
+            <input id="librarySearch" type="search" placeholder="بحث في العنوان أو المؤلف أو رقم التصنيف أو المكتبة" autocomplete="off" />
+          </div>
+
+          <label class="select-field">
+            <span>البرنامج</span>
+            <select id="libraryProgramFilter"></select>
+          </label>
+
+          <label class="select-field">
+            <span>العلاقة</span>
+            <select id="libraryRelationFilter">
+              <option value="all">كل العلاقات</option>
+              <option value="core">أساسي</option>
+              <option value="supporting">مساند</option>
+            </select>
+          </label>
+
+          <label class="select-field">
+            <span>المجال</span>
+            <select id="libraryTopicFilter"></select>
+          </label>
+        </section>
+
+        <div class="loading" id="libraryLoading">جاري تحميل بيانات كتب المكتبة...</div>
+
+        <div class="library-content" id="libraryContent" hidden>
+          <section class="overview-band library-summary" id="librarySummary"></section>
+
+          <section class="library-results">
+            <div class="section-heading">
+              <h2>نتائج الكتب</h2>
+              <span id="libraryResultCount"></span>
+            </div>
+            <div class="library-table-wrap">
+              <table class="library-table">
+                <thead>
+                  <tr>
+                    <th>الكتاب</th>
+                    <th>العلاقة بالبرنامج</th>
+                    <th>نسخ العنوان</th>
+                    <th>رقم التصنيف</th>
+                    <th>المكتبة</th>
+                    <th>رقم النسخة</th>
+                    <th>بيانات السجل</th>
+                  </tr>
+                </thead>
+                <tbody id="libraryTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

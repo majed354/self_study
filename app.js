@@ -2,6 +2,7 @@ const SOURCES = {
   ug: "data/evidence-inventory-ug.json",
   pg: "data/evidence-inventory-pg.json",
   classification: "data/evidence-classification.json",
+  library: "data/library-books.json",
 };
 
 const STORE_KEY = "selfStudyEvidenceAudit.v1";
@@ -12,19 +13,29 @@ const STATUS = {
 };
 
 const state = {
+  view: "criteria",
   program: "ug",
   standard: "all",
   selectedCriterionId: "",
   query: "",
   pickerOpen: false,
+  libraryQuery: "",
+  libraryProgram: "all",
+  libraryRelation: "all",
+  libraryTopic: "all",
   statuses: loadStatuses(),
 };
 
 let programs = {};
 let classification = null;
+let libraryData = null;
+let libraryPromise = null;
 let toastTimer = 0;
 
 const el = {
+  criteriaView: document.querySelector("#criteriaView"),
+  libraryView: document.querySelector("#libraryView"),
+  criteriaActions: document.querySelector("#criteriaActions"),
   loading: document.querySelector("#loadingState"),
   app: document.querySelector("#appContent"),
   overview: document.querySelector("#overviewBand"),
@@ -45,15 +56,28 @@ const el = {
   printPage: document.querySelector("#printPage"),
   resetCriterion: document.querySelector("#resetCriterion"),
   toast: document.querySelector("#toast"),
+  libraryLoading: document.querySelector("#libraryLoading"),
+  libraryContent: document.querySelector("#libraryContent"),
+  librarySearch: document.querySelector("#librarySearch"),
+  libraryProgramFilter: document.querySelector("#libraryProgramFilter"),
+  libraryRelationFilter: document.querySelector("#libraryRelationFilter"),
+  libraryTopicFilter: document.querySelector("#libraryTopicFilter"),
+  librarySummary: document.querySelector("#librarySummary"),
+  libraryResultCount: document.querySelector("#libraryResultCount"),
+  libraryTableBody: document.querySelector("#libraryTableBody"),
+  exportLibraryCsv: document.querySelector("#exportLibraryCsv"),
+  exportLibraryPdf: document.querySelector("#exportLibraryPdf"),
 };
 
 init();
 
 async function init() {
   try {
-    const [ug, pg, cls] = await Promise.all(
-      Object.values(SOURCES).map((source) => fetch(source).then((response) => response.json())),
-    );
+    const [ug, pg, cls] = await Promise.all([
+      fetch(SOURCES.ug).then((response) => response.json()),
+      fetch(SOURCES.pg).then((response) => response.json()),
+      fetch(SOURCES.classification).then((response) => response.json()),
+    ]);
 
     classification = cls;
     programs = {
@@ -69,6 +93,9 @@ async function init() {
     el.loading.hidden = true;
     el.app.hidden = false;
     render();
+    loadLibraryData().then(() => {
+      if (state.view === "library") render();
+    });
   } catch (error) {
     el.loading.textContent = "تعذر تحميل بيانات الأدلة. تحقق من وجود ملفات data داخل الموقع.";
     console.error(error);
@@ -76,6 +103,17 @@ async function init() {
 }
 
 function bindEvents() {
+  document.querySelectorAll(".mode-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.view = button.dataset.view;
+      state.pickerOpen = false;
+      render();
+      if (state.view === "library") {
+        loadLibraryData().then(render);
+      }
+    });
+  });
+
   document.querySelectorAll(".program-tab").forEach((button) => {
     button.addEventListener("click", () => {
       state.program = button.dataset.program;
@@ -149,6 +187,46 @@ function bindEvents() {
   el.copyCriterion.addEventListener("click", copySelectedCriterion);
   el.printPage.addEventListener("click", () => window.print());
   el.resetCriterion.addEventListener("click", resetSelectedCriterion);
+
+  el.librarySearch.addEventListener("input", (event) => {
+    state.libraryQuery = event.target.value.trim();
+    renderLibrary();
+  });
+
+  el.libraryProgramFilter.addEventListener("change", (event) => {
+    state.libraryProgram = event.target.value;
+    renderLibrary();
+  });
+
+  el.libraryRelationFilter.addEventListener("change", (event) => {
+    state.libraryRelation = event.target.value;
+    renderLibrary();
+  });
+
+  el.libraryTopicFilter.addEventListener("change", (event) => {
+    state.libraryTopic = event.target.value;
+    renderLibrary();
+  });
+
+  el.exportLibraryCsv.addEventListener("click", exportLibraryCsv);
+  el.exportLibraryPdf.addEventListener("click", () => window.print());
+}
+
+function loadLibraryData() {
+  if (libraryData) return Promise.resolve(libraryData);
+  if (!libraryPromise) {
+    libraryPromise = fetch(SOURCES.library)
+      .then((response) => response.json())
+      .then((raw) => {
+        libraryData = prepareLibrary(raw);
+        return libraryData;
+      })
+      .catch((error) => {
+        el.libraryLoading.textContent = "تعذر تحميل بيانات كتب المكتبة.";
+        console.error(error);
+      });
+  }
+  return libraryPromise;
 }
 
 function prepareProgram(raw) {
@@ -166,6 +244,51 @@ function prepareProgram(raw) {
     });
   });
   return { ...raw, criteria };
+}
+
+function prepareLibrary(raw) {
+  const programNames = Object.fromEntries(raw.programs.map((program) => [program.id, program.name]));
+  const copyGroups = new Map();
+  const records = raw.records.map((record) => {
+    const fieldsText = Object.values(record.fields || {}).join(" ");
+    const programText = [...(record.corePrograms || []), ...(record.supportingPrograms || [])]
+      .map((programId) => programNames[programId] || programId)
+      .join(" ");
+    const prepared = {
+      ...record,
+      searchText: normalize(
+        `${record.title} ${record.mainTitle} ${record.responsibility} ${record.publisher} ${record.callNumber} ${record.libraryName} ${record.itemID} ${record.copyNumber} ${record.topicLabel} ${programText} ${fieldsText}`,
+      ),
+    };
+    const group = copyGroups.get(record.workKey) || {
+      count: 0,
+      libraries: new Map(),
+      itemIds: [],
+    };
+    group.count += 1;
+    group.itemIds.push(record.itemID);
+    const libraryName = record.libraryName || "غير محدد";
+    group.libraries.set(libraryName, (group.libraries.get(libraryName) || 0) + 1);
+    copyGroups.set(record.workKey, group);
+    return prepared;
+  });
+
+  records.forEach((record) => {
+    const group = copyGroups.get(record.workKey);
+    record.copyCount = group?.count || 1;
+    record.copyLibraries = [...(group?.libraries || new Map()).entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ar"))
+      .map(([name, count]) => ({ name, count }));
+  });
+
+  const relationLabels = raw.metadata?.relation_labels || { core: "أساسي", supporting: "مساند" };
+  return {
+    ...raw,
+    records,
+    copyGroupCount: copyGroups.size,
+    programNames,
+    relationLabels,
+  };
 }
 
 function buildEvidencePlan(evidence, criterion) {
@@ -282,6 +405,11 @@ function classifyEvidence(description = "", notes = "") {
 }
 
 function render() {
+  updateModeTabs();
+  if (state.view === "library") {
+    renderLibrary();
+    return;
+  }
   updateTabs();
   renderOverview();
   renderStandards();
@@ -289,6 +417,17 @@ function render() {
   renderCriteriaList();
   renderLegend();
   renderCriterion();
+}
+
+function updateModeTabs() {
+  document.querySelectorAll(".mode-tab").forEach((button) => {
+    const active = button.dataset.view === state.view;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  el.criteriaView.hidden = state.view !== "criteria";
+  el.libraryView.hidden = state.view !== "library";
+  el.criteriaActions.hidden = state.view !== "criteria";
 }
 
 function updateTabs() {
@@ -526,6 +665,229 @@ function renderImpactPanel(criterion, result, readiness) {
   `;
 }
 
+function renderLibrary() {
+  if (!libraryData) {
+    el.libraryLoading.hidden = false;
+    el.libraryContent.hidden = true;
+    return;
+  }
+
+  el.libraryLoading.hidden = true;
+  el.libraryContent.hidden = false;
+  renderLibraryFilters();
+
+  const records = filteredLibraryRecords();
+  const workCount = new Set(records.map((record) => record.workKey)).size;
+  const libraryCount = new Set(records.map((record) => record.libraryName).filter(Boolean)).size;
+  const averageCopies = workCount ? records.length / workCount : 0;
+  const coreCount = records.filter((record) => recordMatchesRelation(record, "core")).length;
+  const supportCount = records.filter((record) => recordMatchesRelation(record, "supporting")).length;
+
+  el.librarySummary.innerHTML = `
+    ${metric("سجلات النسخ", formatNumber(records.length), `من أصل ${formatNumber(libraryData.metadata.total_records)} سجل`)}
+    ${metric("العناوين/الطبعات", formatNumber(workCount), "بحسب النص الببليوجرافي ورقم التصنيف")}
+    ${metric("متوسط النسخ", formatDecimal(averageCopies), "نسخة لكل عنوان ظاهر")}
+    ${metric("المكتبات", formatNumber(libraryCount), `أساسي ${formatNumber(coreCount)} / مساند ${formatNumber(supportCount)}`)}
+  `;
+
+  el.libraryResultCount.textContent = `${formatNumber(records.length)} سجل نسخة، ${formatNumber(workCount)} عنوان/طبعة`;
+  el.libraryTableBody.innerHTML = records.length
+    ? records.map(renderLibraryRow).join("")
+    : `<tr><td colspan="7" class="empty-cell">لا توجد كتب مطابقة للبحث الحالي.</td></tr>`;
+}
+
+function renderLibraryFilters() {
+  const selectedProgram = state.libraryProgram;
+  const selectedTopic = state.libraryTopic;
+
+  el.libraryProgramFilter.innerHTML = `
+    <option value="all">كل البرامج</option>
+    ${libraryData.programs
+      .map((program) => `<option value="${program.id}">${escapeHtml(program.name)}</option>`)
+      .join("")}
+  `;
+  el.libraryProgramFilter.value = selectedProgram;
+
+  el.libraryTopicFilter.innerHTML = `
+    <option value="all">كل المجالات</option>
+    ${libraryData.topics
+      .map((topic) => `<option value="${topic.id}">${escapeHtml(topic.label)} (${formatNumber(topic.records)})</option>`)
+      .join("")}
+  `;
+  el.libraryTopicFilter.value = selectedTopic;
+}
+
+function renderLibraryRow(record) {
+  const fields = Object.entries(record.fields || {})
+    .map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value || "—")}</dd>`)
+    .join("");
+  const publisher = record.publisher ? `<span class="mini-chip">دار النشر: ${escapeHtml(record.publisher)}</span>` : "";
+
+  return `
+    <tr>
+      <td class="book-cell">
+        <strong>${escapeHtml(record.title || record.mainTitle || "بدون عنوان")}</strong>
+        ${record.responsibility ? `<small>${escapeHtml(record.responsibility)}</small>` : ""}
+        <div class="book-tags">
+          <span class="mini-chip">${escapeHtml(record.topicLabel || "عام")}</span>
+          ${publisher}
+        </div>
+      </td>
+      <td>${libraryRelationSummary(record)}</td>
+      <td class="copy-cell">
+        <strong>${formatNumber(record.copyCount)}</strong>
+        <small>${escapeHtml(copyLibrariesText(record))}</small>
+      </td>
+      <td><span class="mono-value">${escapeHtml(record.callNumber || "—")}</span></td>
+      <td>
+        <strong>${escapeHtml(record.libraryName || "—")}</strong>
+        <small>${escapeHtml(record.location || "")}</small>
+      </td>
+      <td>
+        <span class="mono-value">${escapeHtml(record.copyNumber || "—")}</span>
+        <small>${escapeHtml(record.itemID || "")}</small>
+      </td>
+      <td>
+        <details class="record-details">
+          <summary>كل الحقول</summary>
+          <dl>${fields}</dl>
+        </details>
+      </td>
+    </tr>
+  `;
+}
+
+function libraryRelationSummary(record) {
+  if (state.libraryProgram !== "all") {
+    const relation = relationForProgram(record, state.libraryProgram);
+    if (!relation) return `<span class="relation-pill muted">غير مرتبط</span>`;
+    return `
+      <span class="relation-pill ${relation}">${libraryData.relationLabels[relation] || relation}</span>
+      <small>${escapeHtml(libraryData.programNames[state.libraryProgram] || "")}</small>
+    `;
+  }
+
+  const coreCount = record.corePrograms?.length || 0;
+  const supportCount = record.supportingPrograms?.length || 0;
+  return `
+    ${coreCount ? `<span class="relation-pill core">أساسي في ${formatNumber(coreCount)}</span>` : ""}
+    ${supportCount ? `<span class="relation-pill supporting">مساند في ${formatNumber(supportCount)}</span>` : ""}
+    ${!coreCount && !supportCount ? `<span class="relation-pill muted">عام</span>` : ""}
+  `;
+}
+
+function filteredLibraryRecords() {
+  if (!libraryData) return [];
+  const query = normalize(state.libraryQuery);
+  return libraryData.records.filter((record) => {
+    if (query && !record.searchText.includes(query)) return false;
+    if (state.libraryTopic !== "all" && !record.topics.includes(state.libraryTopic)) return false;
+
+    if (state.libraryProgram !== "all") {
+      const relation = relationForProgram(record, state.libraryProgram);
+      if (!relation) return false;
+      return state.libraryRelation === "all" || relation === state.libraryRelation;
+    }
+
+    if (state.libraryRelation !== "all" && !recordMatchesRelation(record, state.libraryRelation)) return false;
+    return true;
+  });
+}
+
+function recordMatchesRelation(record, relation) {
+  if (state.libraryProgram !== "all") {
+    return relationForProgram(record, state.libraryProgram) === relation;
+  }
+  return (record.programRelations || []).some((entry) => entry.relation === relation);
+}
+
+function relationForProgram(record, programId) {
+  return (record.programRelations || []).find((entry) => entry.programId === programId)?.relation || "";
+}
+
+function copyLibrariesText(record) {
+  const libraries = record.copyLibraries || [];
+  if (!libraries.length) return "لا يوجد توزيع مكتبات";
+  const shown = libraries
+    .slice(0, 3)
+    .map((library) => `${library.name} (${formatNumber(library.count)})`)
+    .join("، ");
+  const remaining = libraries.length - 3;
+  return remaining > 0 ? `${shown}، و${formatNumber(remaining)} مكتبات أخرى` : shown;
+}
+
+function programNames(ids) {
+  return (ids || []).map((id) => libraryData.programNames[id] || id).join(" | ");
+}
+
+function exportLibraryCsv() {
+  if (!libraryData) return;
+  const records = filteredLibraryRecords();
+  const sourceColumns = libraryData.metadata.columns || [];
+  const headers = [
+    "معرف السجل",
+    "رقم الصف في المصدر",
+    "العنوان",
+    "العنوان المختصر",
+    "بيان المسؤولية",
+    "دار النشر المستخرجة",
+    "رقم التصنيف",
+    "اسم المكتبة",
+    "رمز المكتبة",
+    "رقم النسخة",
+    "معرف النسخة",
+    "الموقع",
+    "المجال",
+    "عدد نسخ العنوان",
+    "توزيع النسخ على المكتبات",
+    "برامج أساسية",
+    "برامج مساندة",
+    "العلاقة مع البرنامج المحدد",
+    ...sourceColumns.map((column) => `الأصل: ${column}`),
+  ];
+  const rows = records.map((record) => {
+    const selectedRelation =
+      state.libraryProgram === "all"
+        ? ""
+        : libraryData.relationLabels[relationForProgram(record, state.libraryProgram)] || "";
+    return [
+      record.id,
+      record.rowNumber,
+      record.title,
+      record.mainTitle,
+      record.responsibility,
+      record.publisher,
+      record.callNumber,
+      record.libraryName,
+      record.libraryCode,
+      record.copyNumber,
+      record.itemID,
+      record.location,
+      record.topicLabel,
+      record.copyCount,
+      copyLibrariesText(record),
+      programNames(record.corePrograms),
+      programNames(record.supportingPrograms),
+      selectedRelation,
+      ...sourceColumns.map((column) => record.fields?.[column] || ""),
+    ];
+  });
+
+  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
+  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `library-books-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast(`تم تجهيز CSV بعدد ${formatNumber(records.length)} سجل.`);
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
 function filteredCriteria() {
   const program = programs[state.program];
   const query = normalize(state.query);
@@ -702,6 +1064,12 @@ function formatNumber(value) {
 function formatPercent(value) {
   return new Intl.NumberFormat("ar-SA", {
     maximumFractionDigits: value % 1 === 0 ? 0 : 1,
+  }).format(value);
+}
+
+function formatDecimal(value) {
+  return new Intl.NumberFormat("ar-SA", {
+    maximumFractionDigits: 1,
   }).format(value);
 }
 
