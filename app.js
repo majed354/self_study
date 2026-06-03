@@ -682,9 +682,12 @@ function renderLibrary() {
   const averageCopies = workCount ? records.length / workCount : 0;
   const coreCount = records.filter((record) => recordMatchesRelation(record, "core")).length;
   const supportCount = records.filter((record) => recordMatchesRelation(record, "supporting")).length;
+  const cleanedDetail = libraryData.metadata.excluded_records_removed
+    ? `بعد تنقية ${formatNumber(libraryData.metadata.excluded_records_removed)} سجل مستبعد`
+    : `من أصل ${formatNumber(libraryData.metadata.total_records)} سجل`;
 
   el.librarySummary.innerHTML = `
-    ${metric("سجلات النسخ", formatNumber(records.length), `من أصل ${formatNumber(libraryData.metadata.total_records)} سجل`)}
+    ${metric("سجلات النسخ", formatNumber(records.length), cleanedDetail)}
     ${metric("العناوين/الطبعات", formatNumber(workCount), "بحسب النص الببليوجرافي ورقم التصنيف")}
     ${metric("متوسط النسخ", formatDecimal(averageCopies), "نسخة لكل عنوان ظاهر")}
     ${metric("المكتبات", formatNumber(libraryCount), `أساسي ${formatNumber(coreCount)} / مساند ${formatNumber(supportCount)}`)}
