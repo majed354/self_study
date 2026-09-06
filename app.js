@@ -3,9 +3,14 @@ const SOURCES = {
   pg: "data/evidence-inventory-pg.json",
   classification: "data/evidence-classification.json",
   library: "data/library-books.json",
+  institutional: "data/institutional-evidence.json",
+  writing: "data/writing-guide.json",
+  workflow: "data/workflow.json",
 };
 
 const STORE_KEY = "selfStudyEvidenceAudit.v1";
+const LAYER_STORE_KEY = "selfStudyLayerAudit.v1";
+const CHECKLIST_STORE_KEY = "selfStudyWritingChecklist.v1";
 const STATUS = {
   available: { label: "متوفر", factor: 1, icon: "i-check" },
   partial: { label: "جزئي", factor: 0.5, icon: "i-minus" },
@@ -24,10 +29,22 @@ const state = {
   libraryRelation: "all",
   libraryTopic: "all",
   statuses: loadStatuses(),
+  stage: "s2",
+  openLayer: 1,
+  institutionalQuery: "",
+  institutionalLevel: "all",
+  institutionalStatus: "all",
+  institutionalProgram: "ug",
+  writingSection: "rule",
+  layerStatuses: loadStore(LAYER_STORE_KEY),
+  checklistState: loadStore(CHECKLIST_STORE_KEY),
 };
 
 let programs = {};
 let classification = null;
+let institutional = null;
+let writingGuide = null;
+let workflow = null;
 let libraryData = null;
 let libraryPromise = null;
 let toastTimer = 0;
@@ -67,19 +84,47 @@ const el = {
   libraryTableBody: document.querySelector("#libraryTableBody"),
   exportLibraryCsv: document.querySelector("#exportLibraryCsv"),
   exportLibraryPdf: document.querySelector("#exportLibraryPdf"),
+  workflowView: document.querySelector("#workflowView"),
+  workflowPrinciple: document.querySelector("#workflowPrinciple"),
+  stageTrack: document.querySelector("#stageTrack"),
+  stageDetail: document.querySelector("#stageDetail"),
+  decisionBanner: document.querySelector("#decisionBanner"),
+  layerGrid: document.querySelector("#layerGrid"),
+  layerDetail: document.querySelector("#layerDetail"),
+  institutionalView: document.querySelector("#institutionalView"),
+  institutionalIntro: document.querySelector("#institutionalIntro"),
+  institutionalRule: document.querySelector("#institutionalRule"),
+  institutionalSearch: document.querySelector("#institutionalSearch"),
+  institutionalLevelFilter: document.querySelector("#institutionalLevelFilter"),
+  institutionalStatusFilter: document.querySelector("#institutionalStatusFilter"),
+  institutionalProgramFilter: document.querySelector("#institutionalProgramFilter"),
+  institutionalSummary: document.querySelector("#institutionalSummary"),
+  institutionalGrid: document.querySelector("#institutionalGrid"),
+  printInstitutional: document.querySelector("#printInstitutional"),
+  writingView: document.querySelector("#writingView"),
+  writingIntro: document.querySelector("#writingIntro"),
+  writingTabs: document.querySelector("#writingTabs"),
+  writingBody: document.querySelector("#writingBody"),
+  printWriting: document.querySelector("#printWriting"),
 };
 
 init();
 
 async function init() {
   try {
-    const [ug, pg, cls] = await Promise.all([
+    const [ug, pg, cls, inst, writing, flow] = await Promise.all([
       fetch(SOURCES.ug).then((response) => response.json()),
       fetch(SOURCES.pg).then((response) => response.json()),
       fetch(SOURCES.classification).then((response) => response.json()),
+      fetch(SOURCES.institutional).then((response) => response.json()),
+      fetch(SOURCES.writing).then((response) => response.json()),
+      fetch(SOURCES.workflow).then((response) => response.json()),
     ]);
 
     classification = cls;
+    institutional = inst;
+    writingGuide = writing;
+    workflow = flow;
     programs = {
       ug: prepareProgram(ug),
       pg: prepareProgram(pg),
@@ -167,6 +212,14 @@ function bindEvents() {
     render();
   });
 
+  el.criterionFocus.addEventListener("click", (event) => {
+    const jump = event.target.closest("[data-goto-view]");
+    if (!jump) return;
+    state.view = jump.dataset.gotoView;
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
   el.criterionList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-criterion]");
     if (!button) return;
@@ -210,6 +263,96 @@ function bindEvents() {
 
   el.exportLibraryCsv.addEventListener("click", exportLibraryCsv);
   el.exportLibraryPdf.addEventListener("click", () => window.print());
+
+  el.stageTrack.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-stage]");
+    if (!button) return;
+    state.stage = button.dataset.stage;
+    renderWorkflow();
+  });
+
+  el.stageDetail.addEventListener("click", (event) => {
+    const jump = event.target.closest("[data-goto-view]");
+    if (!jump) return;
+    const target = jump.dataset.gotoView;
+    if (target === "workflow") {
+      el.layerGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    state.view = target;
+    render();
+    if (target === "library") loadLibraryData().then(render);
+  });
+
+  el.layerGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-layer]");
+    if (!button) return;
+    state.openLayer = Number(button.dataset.layer);
+    renderWorkflow();
+  });
+
+  el.layerDetail.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-layer-item][data-layer-status]");
+    if (!button) return;
+    const key = button.dataset.layerItem;
+    const value = button.dataset.layerStatus;
+    if (state.layerStatuses[key] === value) delete state.layerStatuses[key];
+    else state.layerStatuses[key] = value;
+    saveStore(LAYER_STORE_KEY, state.layerStatuses);
+    renderWorkflow();
+  });
+
+  el.institutionalSearch.addEventListener("input", (event) => {
+    state.institutionalQuery = event.target.value.trim();
+    renderInstitutional();
+  });
+
+  el.institutionalLevelFilter.addEventListener("change", (event) => {
+    state.institutionalLevel = event.target.value;
+    renderInstitutional();
+  });
+
+  el.institutionalStatusFilter.addEventListener("change", (event) => {
+    state.institutionalStatus = event.target.value;
+    renderInstitutional();
+  });
+
+  el.institutionalProgramFilter.addEventListener("change", (event) => {
+    state.institutionalProgram = event.target.value;
+    renderInstitutional();
+  });
+
+  el.institutionalGrid.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-open-criterion]");
+    if (!chip) return;
+    state.program = chip.dataset.program || state.program;
+    state.standard = "all";
+    state.query = "";
+    el.criterionSearch.value = "";
+    state.selectedCriterionId = chip.dataset.openCriterion;
+    state.view = "criteria";
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  el.printInstitutional.addEventListener("click", () => window.print());
+  el.printWriting.addEventListener("click", () => window.print());
+
+  el.writingTabs.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-writing-section]");
+    if (!button) return;
+    state.writingSection = button.dataset.writingSection;
+    renderWriting();
+  });
+
+  el.writingBody.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-checklist]");
+    if (!item) return;
+    const key = item.dataset.checklist;
+    state.checklistState[key] = !state.checklistState[key];
+    saveStore(CHECKLIST_STORE_KEY, state.checklistState);
+    renderWriting();
+  });
 }
 
 function loadLibraryData() {
@@ -410,6 +553,18 @@ function render() {
     renderLibrary();
     return;
   }
+  if (state.view === "workflow") {
+    renderWorkflow();
+    return;
+  }
+  if (state.view === "institutional") {
+    renderInstitutional();
+    return;
+  }
+  if (state.view === "writing") {
+    renderWriting();
+    return;
+  }
   updateTabs();
   renderOverview();
   renderStandards();
@@ -427,6 +582,9 @@ function updateModeTabs() {
   });
   el.criteriaView.hidden = state.view !== "criteria";
   el.libraryView.hidden = state.view !== "library";
+  el.workflowView.hidden = state.view !== "workflow";
+  el.institutionalView.hidden = state.view !== "institutional";
+  el.writingView.hidden = state.view !== "writing";
   el.criteriaActions.hidden = state.view !== "criteria";
 }
 
@@ -580,6 +738,7 @@ function renderCriterion() {
       </div>
       <span class="state-pill ${readiness.level}">${readiness.title}</span>
     </div>
+    ${institutionalForCriterion(criterion.id)}
   `;
 
   el.evidenceCount.textContent = `${formatNumber(criterion.evidencePlan.length)} أدلة`;
@@ -1020,6 +1179,23 @@ function statusKey(program, criterionId, evidenceKey) {
   return `${program}:${criterionId}:${evidenceKey}`;
 }
 
+function loadStore(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveStore(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    /* تخزين المتصفح غير متاح */
+  }
+}
+
 function loadStatuses() {
   try {
     return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
@@ -1078,4 +1254,613 @@ function formatDecimal(value) {
 
 function roundWeight(value) {
   return Math.round(value * 10) / 10;
+}
+
+function institutionalForCriterion(criterionId) {
+  if (!institutional) return "";
+  const key = state.program === "pg" ? "criteria_pg" : "criteria_ug";
+  const matches = institutional.items.filter((item) => (item[key] || []).includes(criterionId));
+  if (!matches.length) return "";
+
+  const order = { university: 0, national: 1, college: 2 };
+  matches.sort((a, b) => (order[a.level] ?? 3) - (order[b.level] ?? 3));
+
+  return `
+    <div class="criterion-institutional">
+      <div class="ci-head">
+        ${icon("i-bank")}
+        <span>الإطار المؤسسي المقترح لافتتاح هذا المحك</span>
+        <button class="text-button" type="button" data-goto-view="institutional">السجل الكامل</button>
+      </div>
+      <div class="chip-row">
+        ${matches
+          .slice(0, 8)
+          .map(
+            (item) =>
+              `<span class="tag ${item.level === "university" ? "core" : item.level === "national" ? "support" : "soft"}" title="${escapeHtml(item.usage)}">${escapeHtml(item.name)}</span>`,
+          )
+          .join("")}
+        ${matches.length > 8 ? `<span class="tag soft">+${formatNumber(matches.length - 8)}</span>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+/* ───────────────────────── مسار العمل والطبقات الأربع ───────────────────────── */
+
+const LAYER_STATUS = {
+  available: { label: "متوفر", factor: 1, icon: "i-check" },
+  partial: { label: "جزئي", factor: 0.5, icon: "i-minus" },
+  missing: { label: "ناقص", factor: 0, icon: "i-x" },
+};
+
+function renderWorkflow() {
+  if (!workflow || !classification) return;
+  el.workflowPrinciple.textContent = workflow.metadata.principle;
+  renderStageTrack();
+  renderStageDetail();
+  renderLayerBoard();
+}
+
+function renderStageTrack() {
+  el.stageTrack.innerHTML = workflow.stages
+    .map((stage) => {
+      const active = stage.id === state.stage;
+      return `
+        <button class="stage-chip ${active ? "is-active" : ""}" type="button" role="tab"
+          aria-selected="${active}" data-stage="${stage.id}">
+          <span class="stage-num">${formatNumber(stage.order)}</span>
+          <span class="stage-name">${escapeHtml(stage.name)}</span>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderStageDetail() {
+  const stage = workflow.stages.find((item) => item.id === state.stage) || workflow.stages[0];
+  const list = (title, values) => `
+    <div class="stage-col">
+      <h4>${title}</h4>
+      <ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>
+    </div>
+  `;
+
+  el.stageDetail.innerHTML = `
+    <header class="stage-head">
+      <div>
+        <p class="eyebrow">المرحلة ${formatNumber(stage.order)} من ${formatNumber(workflow.stages.length)}</p>
+        <h3>${escapeHtml(stage.name)}</h3>
+        <p class="stage-question">${escapeHtml(stage.question)}</p>
+      </div>
+      <button class="text-button" type="button" data-goto-view="${stage.link.view}">
+        ${icon("i-link")} ${escapeHtml(stage.link.label)}
+      </button>
+    </header>
+    <p class="stage-purpose">${escapeHtml(stage.purpose)}</p>
+    <div class="stage-cols">
+      ${list("المدخلات", stage.inputs)}
+      ${list("المخرجات", stage.outputs)}
+    </div>
+    <div class="stage-gate">
+      <span class="gate-label">بوابة الانتقال</span>
+      <p>${escapeHtml(stage.gate)}</p>
+    </div>
+    <div class="stage-foot">
+      <span class="mini-chip">المهارة: ${escapeHtml(stage.skill)}</span>
+      <span class="warn-chip">${icon("i-alert")} ${escapeHtml(stage.review_link)}</span>
+    </div>
+  `;
+}
+
+function layerItems(layer) {
+  return (layer.sections || []).flatMap((section) =>
+    (section.items || []).map((item) => ({ ...item, section: section.section_name })),
+  );
+}
+
+function layerKey(layerId, itemId) {
+  return `L${layerId}:${itemId}`;
+}
+
+function computeLayer(layer) {
+  const items = layerItems(layer);
+  let score = 0;
+  let decided = 0;
+  let criticalBlocked = 0;
+  const criticalTotal = items.filter((item) => item.criticality === "حرج").length;
+
+  items.forEach((item) => {
+    const status = state.layerStatuses[layerKey(layer.layer_id, item.id)];
+    if (status) decided += 1;
+    score += LAYER_STATUS[status]?.factor ?? 0;
+    if (item.criticality === "حرج" && status === "missing") criticalBlocked += 1;
+  });
+
+  const completion = items.length ? (score / items.length) * 100 : 0;
+  const verdict =
+    completion >= 80 && criticalBlocked === 0 ? "ready" : completion >= 60 ? "partial" : "blocked";
+
+  return { items, completion, decided, criticalTotal, criticalBlocked, verdict };
+}
+
+const VERDICT = {
+  ready: { label: "جاهز", cls: "ok" },
+  partial: { label: "مقبول", cls: "warn" },
+  blocked: { label: "غير جاهز", cls: "risk" },
+};
+
+function renderLayerBoard() {
+  const layers = classification.layers || [];
+  const results = layers.map((layer) => ({ layer, result: computeLayer(layer) }));
+  const gateLayers = results.filter(({ layer }) => layer.layer_id <= 2);
+  const gateReady = gateLayers.every(({ result }) => result.verdict === "ready");
+  const blockers = gateLayers.reduce((sum, { result }) => sum + result.criticalBlocked, 0);
+
+  el.decisionBanner.className = `decision-banner ${gateReady ? "ok" : blockers ? "risk" : "warn"}`;
+  el.decisionBanner.innerHTML = `
+    <div>
+      <h3>${gateReady ? "قرار البدء: ابدأ الكتابة" : "قرار البدء: لم تُستوفَ البوابة بعد"}</h3>
+      <p>${escapeHtml(classification.metadata.classification_system.start_decision)}</p>
+    </div>
+    <div class="decision-figures">
+      ${gateLayers
+        .map(
+          ({ layer, result }) => `
+        <span class="mini-chip">${escapeHtml(layer.name)}: ${formatPercent(result.completion)}٪</span>
+      `,
+        )
+        .join("")}
+      ${blockers ? `<span class="warn-chip">${icon("i-alert")} ${formatNumber(blockers)} دليل حرج ناقص</span>` : ""}
+    </div>
+  `;
+
+  el.layerGrid.innerHTML = results
+    .map(({ layer, result }) => {
+      const active = layer.layer_id === state.openLayer;
+      const verdict = VERDICT[result.verdict];
+      return `
+        <button class="layer-card ${active ? "is-active" : ""} ${verdict.cls}" type="button" data-layer="${layer.layer_id}">
+          <header>
+            <span class="layer-order">الطبقة ${formatNumber(layer.layer_id)}</span>
+            <span class="state-pill ${verdict.cls}">${verdict.label}</span>
+          </header>
+          <h3>${escapeHtml(layer.name)}</h3>
+          <p>${escapeHtml(layer.description)}</p>
+          <div class="layer-bar"><span style="width:${Math.round(result.completion)}%"></span></div>
+          <footer>
+            <span>${formatPercent(result.completion)}٪ جاهزية</span>
+            <span>${formatNumber(result.items.length)} عنصر · ${formatNumber(result.criticalTotal)} حرج</span>
+          </footer>
+        </button>
+      `;
+    })
+    .join("");
+
+  const current = results.find(({ layer }) => layer.layer_id === state.openLayer) || results[0];
+  if (!current) {
+    el.layerDetail.innerHTML = "";
+    return;
+  }
+  renderLayerDetail(current.layer);
+}
+
+function renderLayerDetail(layer) {
+  const sections = layer.sections || [];
+  el.layerDetail.innerHTML = `
+    <div class="layer-detail-head">
+      <div>
+        <h3>${escapeHtml(layer.name)}</h3>
+        <p>${escapeHtml(layer.impact || "")}</p>
+      </div>
+      <span class="mini-chip">${escapeHtml(layer.priority || "")}</span>
+    </div>
+    ${sections
+      .map(
+        (section) => `
+      <section class="layer-section">
+        <h4>${escapeHtml(section.section_name)}</h4>
+        <div class="layer-items">
+          ${(section.items || []).map((item) => renderLayerItem(layer, item)).join("")}
+        </div>
+      </section>
+    `,
+      )
+      .join("")}
+  `;
+}
+
+function renderLayerItem(layer, item) {
+  const key = layerKey(layer.layer_id, item.id);
+  const status = state.layerStatuses[key] || "";
+  const critical = item.criticality === "حرج";
+  return `
+    <article class="layer-item ${status ? `is-${status}` : ""}">
+      <header>
+        <div>
+          <span class="mono-value">${escapeHtml(item.id)}</span>
+          <h5>${escapeHtml(item.name)}</h5>
+        </div>
+        <span class="state-pill ${critical ? "risk" : "muted"}">${escapeHtml(item.criticality || "")}</span>
+      </header>
+      ${item.frequency || item.impact ? `<p class="layer-meta">${escapeHtml([item.frequency, item.impact].filter(Boolean).join(" — "))}</p>` : ""}
+      ${
+        (item.check_items || []).length
+          ? `<ul class="check-items">${item.check_items.map((check) => `<li>${escapeHtml(check)}</li>`).join("")}</ul>`
+          : ""
+      }
+      <div class="status-actions">
+        ${Object.entries(LAYER_STATUS)
+          .map(
+            ([value, meta]) => `
+          <button class="status-action ${status === value ? "is-active" : ""}" type="button"
+            data-layer-item="${key}" data-layer-status="${value}">
+            ${icon(meta.icon)} ${meta.label}
+          </button>
+        `,
+          )
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+/* ───────────────────────── سجل الأدلة المؤسسية ───────────────────────── */
+
+function renderInstitutional() {
+  if (!institutional) return;
+  const meta = institutional.metadata;
+  el.institutionalIntro.textContent = meta.description;
+  el.institutionalRule.innerHTML = `${icon("i-alert")}<div><strong>قاعدة أحدث نسخة</strong><p>${escapeHtml(meta.golden_rule)}</p></div>`;
+
+  if (!el.institutionalLevelFilter.options.length) {
+    el.institutionalLevelFilter.innerHTML = `<option value="all">كل المستويات</option>${meta.levels
+      .map((level) => `<option value="${level.id}">${escapeHtml(level.name)}</option>`)
+      .join("")}`;
+  }
+
+  const items = filteredInstitutional();
+  const programKey = state.institutionalProgram === "pg" ? "criteria_pg" : "criteria_ug";
+  const needsAction = items.filter((item) => item.status === "للتأكيد").length;
+  const linked = items.reduce((sum, item) => sum + (item[programKey]?.length || 0), 0);
+
+  el.institutionalSummary.innerHTML = `
+    ${metric("الوثائق المعروضة", formatNumber(items.length), `من ${formatNumber(institutional.items.length)} وثيقة في السجل`)}
+    ${metric("تحتاج تأكيداً", formatNumber(needsAction), "غير متوفرة أو تنتظر جهة خارجية")}
+    ${metric("إحالات المحكات", formatNumber(linked), state.institutionalProgram === "pg" ? "الدراسات العليا" : "البكالوريوس")}
+    ${metric("المستويات", formatNumber(meta.levels.length), "وطني · جامعي · كلية")}
+  `;
+
+  el.institutionalGrid.innerHTML = items.length
+    ? items.map((item) => renderInstitutionalCard(item, programKey)).join("")
+    : `<p class="empty-cell">لا توجد وثائق مطابقة للتصفية الحالية.</p>`;
+}
+
+function renderInstitutionalCard(item, programKey) {
+  const levelName =
+    institutional.metadata.levels.find((level) => level.id === item.level)?.name || item.level;
+  const criteria = item[programKey] || [];
+  const program = state.institutionalProgram;
+  const warn = (item.version_watch || "").startsWith("⚠️");
+
+  return `
+    <article class="doc-card ${item.status === "للتأكيد" ? "is-pending" : ""}">
+      <header>
+        <div>
+          <span class="mono-value">${escapeHtml(item.id)}</span>
+          <h3>${escapeHtml(item.name)}</h3>
+          <p class="doc-issuer">${escapeHtml(item.issuer)}</p>
+        </div>
+        <div class="doc-badges">
+          <span class="state-pill ${item.level === "national" ? "info" : item.level === "university" ? "ok" : "muted"}">${escapeHtml(levelName)}</span>
+          <span class="state-pill ${item.status === "معتمد" ? "ok" : "warn"}">${escapeHtml(item.status)}</span>
+        </div>
+      </header>
+
+      <p class="doc-usage"><strong>الاستخدام في المتن:</strong> ${escapeHtml(item.usage)}</p>
+
+      ${
+        item.version_watch
+          ? `<p class="doc-version ${warn ? "is-warn" : ""}">${warn ? icon("i-alert") : ""}${escapeHtml(item.version_watch.replace("⚠️ ", ""))}</p>`
+          : ""
+      }
+
+      ${item.notes ? `<p class="doc-note">${escapeHtml(item.notes)}</p>` : ""}
+
+      <div class="doc-tags">
+        <span class="tag">${escapeHtml(item.category)}</span>
+        ${(item.topics || []).map((topic) => `<span class="tag soft">${escapeHtml(topic)}</span>`).join("")}
+      </div>
+
+      ${
+        criteria.length
+          ? `<div class="doc-criteria">
+              <span class="doc-criteria-label">محكات مقترحة (${formatNumber(criteria.length)})</span>
+              <div class="chip-row">
+                ${criteria
+                  .map(
+                    (id) =>
+                      `<button class="criterion-chip" type="button" data-open-criterion="${escapeHtml(id)}" data-program="${program}">${escapeHtml(id)}</button>`,
+                  )
+                  .join("")}
+              </div>
+            </div>`
+          : `<p class="doc-note">لا توجد إحالات مطابقة آلياً في هذا البرنامج.</p>`
+      }
+    </article>
+  `;
+}
+
+function filteredInstitutional() {
+  const query = normalize(state.institutionalQuery);
+  return institutional.items.filter((item) => {
+    if (state.institutionalLevel !== "all" && item.level !== state.institutionalLevel) return false;
+    if (state.institutionalStatus !== "all" && item.status !== state.institutionalStatus) return false;
+    if (!query) return true;
+    const blob = normalize(
+      [item.name, item.issuer, item.category, item.usage, item.notes, (item.topics || []).join(" ")].join(" "),
+    );
+    return blob.includes(query);
+  });
+}
+
+/* ───────────────────────── دليل الكتابة ───────────────────────── */
+
+const WRITING_SECTIONS = [
+  { id: "rule", label: "القاعدة المعتمدة" },
+  { id: "phrasing", label: "الصياغة المثالية" },
+  { id: "example", label: "نموذج محك مكتمل" },
+  { id: "checklist", label: "قائمة التحقق" },
+  { id: "review", label: "أخطاء المراجعة" },
+];
+
+function renderWriting() {
+  if (!writingGuide) return;
+  el.writingIntro.textContent = writingGuide.metadata.description;
+  el.writingTabs.innerHTML = WRITING_SECTIONS.map(
+    (section) => `
+      <button class="sub-tab ${state.writingSection === section.id ? "is-active" : ""}" type="button"
+        role="tab" aria-selected="${state.writingSection === section.id}" data-writing-section="${section.id}">
+        ${escapeHtml(section.label)}
+      </button>
+    `,
+  ).join("");
+
+  const renderers = {
+    rule: writingRule,
+    phrasing: writingPhrasing,
+    example: writingExample,
+    checklist: writingChecklist,
+    review: writingReview,
+  };
+  el.writingBody.innerHTML = (renderers[state.writingSection] || writingRule)();
+}
+
+function writingRule() {
+  const rule = writingGuide.rule;
+  const adli = writingGuide.adli;
+  const citation = writingGuide.citation;
+  return `
+    <article class="doc-panel">
+      <span class="eyebrow">القاعدة</span>
+      <h3>${escapeHtml(rule.headline)}</h3>
+      <div class="rule-banner"><div><strong>مصدر القاعدة</strong><p>${escapeHtml(rule.finding)}</p><p>${escapeHtml(rule.verification)}</p></div></div>
+      <div class="two-cols">
+        <div class="do-box">
+          <h4>${icon("i-check")} افعل داخل المحك</h4>
+          <ul>${rule.do.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </div>
+        <div class="dont-box">
+          <h4>${icon("i-x")} لا تفعل</h4>
+          <ul>${rule.dont.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <div class="callout">
+        <h4>في نهاية كل معيار</h4>
+        <ol>${rule.standard_end.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ol>
+        <p class="callout-foot">${escapeHtml(rule.consistency)}</p>
+      </div>
+    </article>
+
+    <article class="doc-panel">
+      <span class="eyebrow">المنطق</span>
+      <h3>${escapeHtml(adli.headline)}</h3>
+      <p class="panel-note">${escapeHtml(adli.note)}</p>
+      <div class="adli-grid">
+        ${adli.items
+          .map(
+            (item) => `
+          <div class="adli-card">
+            <h4>${escapeHtml(item.key)}</h4>
+            <p class="adli-q">${escapeHtml(item.question)}</p>
+            <p class="sample">${escapeHtml(item.sample)}</p>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    </article>
+
+    <article class="doc-panel">
+      <span class="eyebrow">الإحالة</span>
+      <h3>${escapeHtml(citation.headline)}</h3>
+      <div class="rule-list">
+        ${citation.rules
+          .map(
+            (item) => `
+          <div class="rule-item">
+            <h4>${escapeHtml(item.title)}</h4>
+            <p>${escapeHtml(item.body)}</p>
+            <p class="sample">${escapeHtml(item.example)}</p>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function writingPhrasing() {
+  const phrasing = writingGuide.phrasing;
+  return `
+    <article class="doc-panel">
+      <span class="eyebrow">قوالب</span>
+      <h3>${escapeHtml(phrasing.headline)}</h3>
+      ${phrasing.groups
+        .map(
+          (group) => `
+        <section class="phrase-group">
+          <h4>${escapeHtml(group.name)}</h4>
+          ${(group.templates || []).map((line) => `<p class="sample">${escapeHtml(line)}</p>`).join("")}
+          ${
+            group.good
+              ? `<div class="two-cols">
+                  <div class="do-box"><h4>${icon("i-check")} صياغة صحيحة</h4><ul>${group.good.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></div>
+                  <div class="dont-box"><h4>${icon("i-x")} صياغة مرفوضة</h4><ul>${group.bad.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></div>
+                </div>`
+              : ""
+          }
+        </section>
+      `,
+        )
+        .join("")}
+    </article>
+
+    <article class="doc-panel">
+      <span class="eyebrow">تنقية</span>
+      <h3>عبارات محظورة وبدائلها</h3>
+      <div class="swap-list">
+        ${phrasing.forbidden
+          .map(
+            (item) => `
+          <div class="swap-item">
+            <p class="swap-bad">${icon("i-x")} ${escapeHtml(item.phrase)}</p>
+            <p class="swap-why">${escapeHtml(item.why)}</p>
+            <p class="swap-good">${icon("i-check")} ${escapeHtml(item.instead)}</p>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function writingExample() {
+  const example = writingGuide.example;
+  const end = example.standard_end_sample;
+  return `
+    <article class="doc-panel">
+      <span class="eyebrow">نموذج</span>
+      <h3>المحك ${escapeHtml(example.criterion_id)} — بنية الصياغة المعتمدة</h3>
+      <blockquote class="criterion-quote">${escapeHtml(example.criterion_text)}</blockquote>
+      <div class="chip-row">
+        ${example.keywords.map((word, index) => `<span class="tag">${formatNumber(index + 1)}. ${escapeHtml(word)}</span>`).join("")}
+      </div>
+      <p class="panel-note">${escapeHtml(example.note)}</p>
+      <ol class="model-list">
+        ${example.paragraphs
+          .map(
+            (para) => `
+          <li>
+            <div class="model-head">
+              <h4>${escapeHtml(para.label)}</h4>
+              <span class="mini-chip">${escapeHtml(para.role)}</span>
+            </div>
+            <p class="model-text">${escapeHtml(para.text)}</p>
+          </li>
+        `,
+          )
+          .join("")}
+      </ol>
+    </article>
+
+    <article class="doc-panel">
+      <span class="eyebrow">نهاية المعيار</span>
+      <h3>ما يُكتب بعد آخر محك في المعيار</h3>
+      <div class="two-cols">
+        <div class="callout">
+          <h4>نقاط القوة</h4>
+          <ul>${end.strengths.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </div>
+        <div class="callout">
+          <h4>أولويات التحسين</h4>
+          <ul>${end.priorities.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p class="callout-foot">تقييم مستوى التطبيق: ${escapeHtml(end.application_level)}</p>
+    </article>
+  `;
+}
+
+function writingChecklist() {
+  const items = writingGuide.checklist;
+  const done = items.filter((_, index) => state.checklistState[`c${index}`]).length;
+  const percent = items.length ? (done / items.length) * 100 : 0;
+  return `
+    <article class="doc-panel">
+      <span class="eyebrow">قبل العرض</span>
+      <h3>قائمة التحقق قبل تسليم أي محك</h3>
+      <div class="checklist-progress">
+        <div class="layer-bar"><span style="width:${Math.round(percent)}%"></span></div>
+        <span>${formatNumber(done)} من ${formatNumber(items.length)}</span>
+      </div>
+      <ul class="checklist">
+        ${items
+          .map(
+            (line, index) => `
+          <li>
+            <button class="check-row ${state.checklistState[`c${index}`] ? "is-done" : ""}" type="button" data-checklist="c${index}">
+              <span class="check-box">${icon("i-check")}</span>
+              <span>${escapeHtml(line)}</span>
+            </button>
+          </li>
+        `,
+          )
+          .join("")}
+      </ul>
+      <p class="panel-note">الحالة محفوظة في هذا المتصفح فقط، وتُعاد تصفيرها بمسح بيانات الموقع.</p>
+    </article>
+
+    <article class="doc-panel">
+      <span class="eyebrow">شرط قبول</span>
+      <h3>${escapeHtml(writingGuide.report_elements.headline)}</h3>
+      <ol class="elements-list">
+        ${writingGuide.report_elements.items
+          .map(
+            (item) => `
+          <li><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.detail)}</span></li>
+        `,
+          )
+          .join("")}
+      </ol>
+    </article>
+  `;
+}
+
+function writingReview() {
+  return `
+    <article class="doc-panel">
+      <span class="eyebrow">تعلّم من المراجعة</span>
+      <h3>أخطاء فريق المراجعة المتكررة</h3>
+      <p class="panel-note">${escapeHtml(writingGuide.metadata.basis)}</p>
+      <div class="finding-list">
+        ${writingGuide.review_findings
+          .map(
+            (item) => `
+          <div class="finding-item">
+            <span class="finding-num">${formatNumber(item.n)}</span>
+            <div>
+              <h4>${escapeHtml(item.title)}</h4>
+              <p><strong>كيف تكتشفه:</strong> ${escapeHtml(item.how)}</p>
+              <p class="finding-impact">${escapeHtml(item.impact)}</p>
+            </div>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    </article>
+  `;
 }
