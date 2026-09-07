@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="أداة حصر أدلة الدراسة الذاتية وقياس جاهزية المحكات لبرامج البكالوريوس والدراسات العليا."
+      content="مرجع عمل الدراسة الذاتية: حصر الأدلة وقياس جاهزية المحكات، ومسار العمل، والقوالب المعتمدة، واللوائح المؤسسية، ودليل الكتابة."
     />
     <title>جاهزية الدراسة الذاتية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -68,6 +74,26 @@
         <path d="M12 9v4m0 4h.01" />
         <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
       </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6" />
+      </symbol>
+      <symbol id="i-arrow-start" viewBox="0 0 24 24">
+        <path d="M19 12H5" />
+        <path d="m12 19-7-7 7-7" />
+      </symbol>
+      <symbol id="i-arrow-end" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </symbol>
+      <symbol id="i-gate" viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24">
+        <path d="M12 3v4m0 10v4M3 12h4m10 0h4" />
+        <circle cx="12" cy="12" r="3" />
+      </symbol>
       <symbol id="i-link" viewBox="0 0 24 24">
         <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
         <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
@@ -104,7 +130,7 @@
         </button>
         <button class="mode-tab" type="button" role="tab" data-view="institutional" aria-selected="false">
           <svg><use href="#i-bank"></use></svg>
-          <span>الأدلة المؤسسية</span>
+          <span>القوالب واللوائح</span>
         </button>
         <button class="mode-tab" type="button" role="tab" data-view="writing" aria-selected="false">
           <svg><use href="#i-pen"></use></svg>
@@ -191,15 +217,19 @@
 
 
       <section class="doc-view" id="workflowView" hidden>
-        <section class="library-hero">
-          <div>
+        <section class="page-hero">
+          <div class="page-hero-text">
             <p class="eyebrow">من الأدلة إلى التقرير</p>
             <h2>مسار عمل الدراسة الذاتية</h2>
-            <p id="workflowPrinciple"></p>
+            <p class="page-hero-lead" id="workflowPrinciple"></p>
           </div>
+          <div class="page-hero-figure" id="workflowProgress"></div>
         </section>
 
-        <div class="stage-track" id="stageTrack" role="tablist" aria-label="مراحل العمل"></div>
+        <section class="journey" aria-label="مراحل العمل">
+          <div class="journey-track" id="stageTrack" role="tablist" aria-label="مراحل العمل"></div>
+        </section>
+
         <section class="stage-detail" id="stageDetail" aria-live="polite"></section>
 
         <section class="layers-block">
@@ -214,13 +244,13 @@
       </section>
 
       <section class="doc-view" id="institutionalView" hidden>
-        <section class="library-hero">
-          <div>
-            <p class="eyebrow">أدلة مشتركة بين البرامج</p>
-            <h2>سجل الأدلة المؤسسية</h2>
-            <p id="institutionalIntro"></p>
+        <section class="page-hero">
+          <div class="page-hero-text">
+            <p class="eyebrow">مرجع الوثائق</p>
+            <h2>القوالب واللوائح</h2>
+            <p class="page-hero-lead" id="institutionalIntro"></p>
           </div>
-          <div class="library-actions">
+          <div class="page-hero-actions">
             <button class="text-button" id="printInstitutional" type="button">
               <svg><use href="#i-print"></use></svg>
               طباعة
@@ -228,18 +258,20 @@
           </div>
         </section>
 
+        <div class="segmented" id="institutionalSections" role="tablist" aria-label="نوع الوثيقة"></div>
+
         <div class="rule-banner" id="institutionalRule"></div>
 
-        <section class="library-controls" aria-label="تصفية الأدلة المؤسسية">
+        <section class="library-controls" id="institutionalControls" aria-label="تصفية الوثائق">
           <div class="searchbox library-searchbox">
             <svg><use href="#i-search"></use></svg>
             <input id="institutionalSearch" type="search" placeholder="بحث باسم الوثيقة أو الجهة أو الموضوع" autocomplete="off" />
           </div>
-          <label class="select-field">
+          <label class="select-field" id="institutionalLevelField">
             <span>المستوى</span>
             <select id="institutionalLevelFilter"></select>
           </label>
-          <label class="select-field">
+          <label class="select-field" id="institutionalStatusField">
             <span>الحالة</span>
             <select id="institutionalStatusFilter">
               <option value="all">الكل</option>
@@ -247,7 +279,7 @@
               <option value="للتأكيد">للتأكيد</option>
             </select>
           </label>
-          <label class="select-field">
+          <label class="select-field" id="institutionalProgramField">
             <span>البرنامج</span>
             <select id="institutionalProgramFilter">
               <option value="ug">البكالوريوس</option>
@@ -261,13 +293,13 @@
       </section>
 
       <section class="doc-view" id="writingView" hidden>
-        <section class="library-hero">
-          <div>
+        <section class="page-hero">
+          <div class="page-hero-text">
             <p class="eyebrow">الصياغة والتعليمات</p>
             <h2>دليل كتابة المحك</h2>
-            <p id="writingIntro"></p>
+            <p class="page-hero-lead" id="writingIntro"></p>
           </div>
-          <div class="library-actions">
+          <div class="page-hero-actions">
             <button class="text-button" id="printWriting" type="button">
               <svg><use href="#i-print"></use></svg>
               طباعة
@@ -280,13 +312,13 @@
       </section>
 
       <section class="library-view" id="libraryView" hidden>
-        <section class="library-hero">
-          <div>
+        <section class="page-hero">
+          <div class="page-hero-text">
             <p class="eyebrow">مصادر التعلم</p>
             <h2>بيانات كتب مكتبات الجامعة</h2>
-            <p>بحث وتصفية وتصدير للكتب المرتبطة بالبرامج، مع إظهار عدد النسخ وتوزيعها على المكتبات لخدمة دليل المحك الخامس.</p>
+            <p class="page-hero-lead">بحث وتصفية وتصدير للكتب المرتبطة بالبرامج، مع إظهار عدد النسخ وتوزيعها على المكتبات لخدمة دليل المحك الخامس.</p>
           </div>
-          <div class="library-actions">
+          <div class="page-hero-actions">
             <button class="text-button" id="exportLibraryCsv" type="button">
               <svg><use href="#i-download"></use></svg>
               CSV

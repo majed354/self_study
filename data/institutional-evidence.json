@@ -1,17 +1,26 @@
 {
   "metadata": {
-    "title": "سجل الأدلة المؤسسية والمشتركة بين البرامج",
-    "description": "الوثائق المرجعية على المستوى الوطني والجامعي والكلية التي تُبنى عليها فقرات الإطار المؤسسي في كل محك، مع المحكات التي تخدمها وقواعد الإحالة إليها.",
+    "title": "القوالب المعتمدة واللوائح المؤسسية",
+    "description": "مرجعان متمايزان: قوالب المركز الوطني التي يُكتب فيها التقرير وأدلته، ولوائح جامعة الطائف وأدلة الكلية التي تُبنى عليها فقرات الإطار المؤسسي في كل محك.",
     "college": "كلية الشريعة والأنظمة",
     "university": "جامعة الطائف",
-    "version": "1.0",
-    "last_updated": "2026-09-06",
-    "levels": [
+    "version": "2.0",
+    "last_updated": "2026-09-07",
+    "sections": [
       {
-        "id": "national",
-        "name": "المستوى الوطني",
-        "description": "نماذج ووثائق المركز الوطني للتقويم والاعتماد الأكاديمي — تحدّد بنية التقرير والأدلة."
+        "id": "templates",
+        "name": "القوالب المعتمدة",
+        "description": "نماذج المركز الوطني للتقويم والاعتماد الأكاديمي — أوعية تُملأ ببيانات البرنامج، لا وثائق يُستشهد بها في المتن.",
+        "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي (ETEC/NCAAA)"
       },
+      {
+        "id": "institutional",
+        "name": "اللوائح والملفات المؤسسية",
+        "description": "لوائح الجامعة وأدلتها الإجرائية ووثائق الكلية — وثائق قائمة يُحال إليها داخل نص المحك بوصفها الإطار المؤسسي.",
+        "issuer": "جامعة الطائف وكلية الشريعة والأنظمة"
+      }
+    ],
+    "levels": [
       {
         "id": "university",
         "name": "المستوى الجامعي",
@@ -24,260 +33,622 @@
       }
     ],
     "matching_note": "قوائم المحكات مُستخرجة آلياً بمطابقة نصية بين كلمات الوثيقة ونص المحك وأوصاف أدلته. تُعامَل كاقتراح يُراجَع، لا كإسناد نهائي.",
-    "golden_rule": "قبل الإحالة إلى أي وثيقة هنا: ابحث عن كل نسخها في مجلد الأدلة كله، واعتمد الأحدث، ووحّدها في جميع المحكات، واذكر سنتها في المتن قبل &."
+    "golden_rule": "قبل الإحالة إلى أي وثيقة هنا: ابحث عن كل نسخها في مجلد الأدلة كله، واعتمد الأحدث، ووحّدها في جميع المحكات، واذكر سنتها في المتن قبل &.",
+    "templates_rule": "القالب وعاء يُملأ ولا يُستشهد به. أما ما يُحال إليه في المتن فهو نسخة البرنامج المعتمدة منه: توصيف البرنامج المعتمد، تقرير المقرر المعتمد، وهكذا."
   },
-  "items": [
+  "templates": [
     {
-      "id": "n-01",
-      "name": "نموذج تقرير الدراسة الذاتية للبرنامج TP-102 SSRP",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي (ETEC/NCAAA)",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
-      "version_watch": "وسم الإصدار (TP-102 + السنة) يقع في خلفية صورة الترويسة بالصفحة الأولى — يُفحص بصرياً لا باستخراج النص. النقل إلى الإصدار المحدَّث سابق على أي تحرير للنص.",
+      "id": "t-01",
+      "name": "تقرير الدراسة الذاتية للبرنامج",
+      "code": "TP-102 / TPG-102",
+      "group": "نماذج التقارير",
+      "slug": "self-study-report",
+      "purpose": "الوعاء الذي يُكتب فيه التقرير كاملاً: خمسة معايير وملف البرنامج للبكالوريوس، وستة معايير للدراسات العليا.",
+      "usage": "لا يُستشهد به داخل المتن؛ تأكد فقط أن تقريرك مبنيّ على الإصدار المعتمد حالياً وأن كل عناصره مستوفاة.",
+      "version_watch": "وسم الإصدار يقع في خلفية صورة الترويسة بالصفحة الأولى — يُفحص بصرياً لا باستخراج النص. النقل إلى الإصدار المحدَّث سابق على أي تحرير للنص.",
       "topics": [
         "بنية التقرير",
         "المعايير والمحكات"
       ],
-      "usage": "لا يُستشهد به داخل المتن؛ هو وعاء التقرير نفسه. تأكد أن التقرير مبنيّ على الإصدار المعتمد حالياً وأن كل عناصره مستوفاة.",
-      "notes": "البكالوريوس ٥ معايير + ملف البرنامج = ٤٨ محكاً. TPG-102 للدراسات العليا = ٥٦ محكاً.",
-      "criteria_ug": [
-        "1-2-3"
-      ],
-      "criteria_pg": [
-        "1-2-3"
-      ],
-      "match_keywords": [
-        "الدراسة الذاتية"
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/self-study-report.docx",
+          "size": 787583
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/self-study-report.pdf",
+          "size": 778647
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/self-study-report.pdf",
+          "size": 837639
+        }
       ]
     },
     {
-      "id": "n-02",
-      "name": "نموذج توصيف البرنامج TP-151",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
-      "version_watch": "تحقّق بصرياً من إصدار النموذج في الترويسة. «تاريخ آخر مراجعة» في المحتوى ليس إصدار النموذج. عند تحديث النموذج تُستبدل كل النسخ في مجلد الأدلة دفعة واحدة.",
+      "id": "t-02",
+      "name": "توصيف البرنامج الأكاديمي",
+      "code": "TP-151",
+      "group": "نماذج التقارير",
+      "slug": "program-specification",
+      "purpose": "يوثّق بنية البرنامج وخطته الدراسية ونواتج تعلّمه ومصفوفاتها.",
+      "usage": "يُحال إلى نسخة البرنامج المعتمدة منه بوصفها الوثيقة المرجعية لبنية البرنامج ونواتجه.",
+      "version_watch": "تحقّق بصرياً من إصدار النموذج في الترويسة. «تاريخ آخر مراجعة» في المحتوى ليس إصدار النموذج.",
       "topics": [
-        "توصيف البرنامج"
-      ],
-      "usage": "يُحال إليه بوصفه الوثيقة المرجعية لبنية البرنامج ونواتجه: «كما ورد في توصيف البرنامج المعتمد ١٤٤xهـ & توصيف البرنامج (أ-ب-ج-د)».",
-      "notes": "دليل محوري 🔴 — يُحال إليه في عشرات المحكات، فوحّد نسخته عبرها جميعاً.",
-      "criteria_ug": [
-        "1-1-1",
-        "1-1-2",
-        "1-1-3",
-        "1-1-4",
-        "1-1-5",
-        "1-1-7",
-        "1-2-1",
-        "1-2-2",
-        "2-1-1",
-        "2-1-2",
-        "2-1-3",
-        "2-1-4",
-        "2-1-5",
-        "2-2-1",
-        "2-2-2",
-        "2-2-3",
-        "2-2-4",
-        "2-2-5",
-        "2-2-7",
-        "2-3-2",
-        "2-3-3",
-        "2-3-5",
-        "3-0-1"
-      ],
-      "criteria_pg": [
-        "1-1-1",
-        "1-1-2",
-        "1-1-5",
-        "1-1-7",
-        "1-2-1",
-        "1-2-2",
-        "2-1-1",
-        "2-1-2",
-        "2-1-3",
-        "2-1-4",
-        "2-1-5",
-        "2-2-1",
-        "2-2-2",
-        "2-2-3",
-        "2-2-4",
-        "2-3-2",
-        "2-3-3",
-        "2-3-4",
-        "2-3-6",
-        "3-0-1"
-      ],
-      "match_keywords": [
         "توصيف البرنامج",
         "الخطة الدراسية",
         "نواتج التعلم"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/program-specification.docx",
+          "size": 719019
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/program-specification.pdf",
+          "size": 541086
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/program-specification.docx",
+          "size": 1765556
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/program-specification.pdf",
+          "size": 529584
+        }
       ]
     },
     {
-      "id": "n-03",
-      "name": "نموذج توصيف المقرر TP-153",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
-      "version_watch": "يُفحص إصداره بصرياً كسابقه، ويشمل الفحصُ كل توصيفات المقررات لا عيّنة منها.",
+      "id": "t-03",
+      "name": "توصيف المقرر الدراسي",
+      "code": "TP-153",
+      "group": "نماذج التقارير",
+      "slug": "course-specification",
+      "purpose": "يوثّق مخرجات تعلم المقرر ومواءمتها مع نواتج البرنامج واستراتيجيات التدريس والتقويم.",
+      "usage": "تُرفق توصيفات المقررات كلها لا عيّنة منها، وتُذكر سنة اعتمادها.",
+      "version_watch": "يُفحص إصداره بصرياً كسابقه، ويشمل الفحصُ كل توصيفات المقررات.",
       "topics": [
-        "توصيفات المقررات"
+        "توصيفات المقررات",
+        "مواءمة المخرجات"
       ],
-      "usage": "يُستشهد به لإثبات مواءمة مخرجات المقرر مع نواتج البرنامج واستراتيجيات التدريس والتقويم.",
-      "notes": "دليل محوري 🔴 مع تقارير المقررات.",
-      "criteria_ug": [
-        "1-1-3",
-        "1-1-4",
-        "1-2-2",
-        "2-2-2",
-        "2-2-7",
-        "2-3-1",
-        "2-3-3"
-      ],
-      "criteria_pg": [
-        "2-1-5",
-        "2-2-2",
-        "2-2-4",
-        "2-3-1",
-        "2-3-4"
-      ],
-      "match_keywords": [
-        "توصيف المقرر",
-        "المقررات الدراسية",
-        "مخرجات التعلم للمقرر"
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/course-specification.docx",
+          "size": 1768595
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/course-specification.pdf",
+          "size": 436570
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/course-specification.docx",
+          "size": 738531
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/course-specification.pdf",
+          "size": 436675
+        }
       ]
     },
     {
-      "id": "n-04",
-      "name": "نموذج تقرير المقرر TP-154",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
+      "id": "t-04",
+      "name": "تقرير المقرر الدراسي",
+      "code": "TP-154",
+      "group": "نماذج التقارير",
+      "slug": "course-report",
+      "purpose": "يُغلق دائرة الجودة على مستوى المقرر: نتيجة القياس ← التوصية ← أثرها في الفصل التالي.",
+      "usage": "يُستشهد به لإثبات المتابعة الفصلية وأثر التوصيات على المقرر.",
       "version_watch": "يُفحص إصداره بصرياً.",
       "topics": [
-        "تقارير المقررات"
+        "تقارير المقررات",
+        "إغلاق دائرة الجودة"
       ],
-      "usage": "يُستشهد به لإغلاق دائرة الجودة على مستوى المقرر: نتيجة القياس ← التوصية ← أثرها في الفصل التالي.",
-      "notes": "دليل محوري 🔴.",
-      "criteria_ug": [
-        "1-1-4",
-        "1-2-2"
-      ],
-      "criteria_pg": [],
-      "match_keywords": [
-        "تقرير المقرر",
-        "نتائج المقرر",
-        "تحليل الدرجات"
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/course-report.docx",
+          "size": 1752277
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/course-report.pdf",
+          "size": 398392
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/course-report.docx",
+          "size": 731794
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/course-report.pdf",
+          "size": 408387
+        }
       ]
     },
     {
-      "id": "n-05",
-      "name": "نموذج التقرير السنوي للبرنامج TP-152",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
+      "id": "t-05",
+      "name": "التقرير السنوي للبرنامج",
+      "code": "TP-152",
+      "group": "نماذج التقارير",
+      "slug": "annual-program-report",
+      "purpose": "مصدر البيانات الكمية والإحصاءات السنوية للبرنامج.",
+      "usage": "كل رقم تنقله منه أعد حسابه وتحقّق من مسمّاه: المتوسط غير المجموع.",
       "version_watch": "يُفحص إصداره بصرياً.",
       "topics": [
-        "التقرير السنوي"
-      ],
-      "usage": "مصدر البيانات الكمية والإحصاءات. كل رقم تنقله منه أعد حسابه وتحقّق من مسمّاه (متوسط ≠ مجموع).",
-      "notes": "دليل محوري 🔴.",
-      "criteria_ug": [
-        "1-1-2",
-        "1-1-3",
-        "1-1-4",
-        "1-1-5",
-        "1-1-6",
-        "1-1-9",
-        "1-2-1",
-        "1-2-2"
-      ],
-      "criteria_pg": [
-        "1-1-2",
-        "1-1-4",
-        "1-2-1",
-        "1-2-2",
-        "6-0-1"
-      ],
-      "match_keywords": [
         "التقرير السنوي",
-        "الأداء السنوي",
         "إحصاءات البرنامج"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/annual-program-report.docx",
+          "size": 1778120
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/annual-program-report.pdf",
+          "size": 438922
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/annual-program-report.docx",
+          "size": 735435
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/annual-program-report.pdf",
+          "size": 451276
+        }
       ]
     },
     {
-      "id": "n-06",
-      "name": "نموذج مؤشرات أداء البرنامج DP-101 / DP-102",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "معتمد",
-      "version_watch": "التزم بالإصدار المعتمد حالياً؛ ويلزم بناء ملف المؤشرات لثلاثة أعوام متصلة مع المستهدف والمرجعيات المقارنة.",
-      "topics": [
-        "مؤشرات الأداء"
-      ],
+      "id": "t-06",
+      "name": "مؤشرات أداء البرنامج",
+      "code": "DP-101 / DP-102",
+      "group": "نماذج التقارير",
+      "slug": "kpis",
+      "purpose": "ملف المؤشرات الكمية بالمستهدف والمقارنات المرجعية.",
       "usage": "يُستشهد به كمصدر كمي لإغلاق دائرة الجودة: «تحسّن المؤشر من كذا إلى كذا بعد إجراء كذا».",
-      "notes": "دليل محوري 🔴. موقع مؤشرات الأداء بالبرنامج وُصف في تقرير المراجعة بأنه ممارسة متميزة.",
-      "criteria_ug": [
-        "1-1-1",
-        "1-1-4",
-        "1-1-6",
-        "1-2-2",
-        "2-1-1",
-        "2-1-3",
-        "2-1-4",
-        "2-2-5",
-        "3-0-1",
-        "4-0-3",
-        "5-0-1"
-      ],
-      "criteria_pg": [
-        "1-1-1",
-        "1-1-4",
-        "1-2-2",
-        "2-1-1",
-        "2-1-3",
-        "2-1-4",
-        "2-3-2",
-        "4-0-3",
-        "5-0-1",
-        "6-0-1",
-        "6-0-3",
-        "6-0-4",
-        "6-0-8",
-        "6-0-11"
-      ],
-      "match_keywords": [
+      "version_watch": "يلزم بناء ملف المؤشرات لثلاثة أعوام متصلة مع المستهدف والمرجعيات المقارنة.",
+      "topics": [
         "مؤشرات الأداء",
-        "المستهدف",
-        "المقارنة المرجعية",
-        "قياس الأداء"
+        "المقارنة المرجعية"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/kpis.pdf",
+          "size": 584339
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/kpis.pdf",
+          "size": 316806
+        }
       ]
     },
     {
-      "id": "n-07",
-      "name": "نموذج TP-138",
-      "level": "national",
-      "issuer": "المركز الوطني للتقويم والاعتماد الأكاديمي",
-      "category": "نماذج المركز الوطني",
-      "status": "للتأكيد",
-      "version_watch": "مطلوب تسلّم النسخة المحدَّثة من العمادة قبل الاستخدام.",
+      "id": "t-07",
+      "name": "نموذج الاتساق مع الإطار الوطني للمؤهلات",
+      "code": "",
+      "group": "نماذج التقارير",
+      "slug": "nqf-alignment",
+      "purpose": "يوثّق اتساق نواتج تعلم البرنامج مع مستويات الإطار الوطني للمؤهلات.",
+      "usage": "يُرفق مع توصيف البرنامج لإثبات مواءمة النواتج بالمستوى المطلوب.",
+      "version_watch": "اعتمد النسخة المرافقة لإصدار توصيف البرنامج نفسه.",
       "topics": [
-        "نماذج مطلوبة"
+        "الإطار الوطني للمؤهلات",
+        "نواتج التعلم"
       ],
-      "usage": "ورد ضمن الوثائق التي طلبها فريق المراجعة ولم تكن متوفرة في ملف الأدلة.",
-      "notes": "يتوقف تنفيذه على تسلّم النموذج من وكالة عمادة التطوير والجودة.",
-      "criteria_ug": [],
-      "criteria_pg": [],
-      "match_keywords": []
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/nqf-alignment.docx",
+          "size": 835826
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/nqf-alignment.pdf",
+          "size": 449536
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/nqf-alignment.docx",
+          "size": 832918
+        }
+      ]
     },
+    {
+      "id": "t-08",
+      "name": "خطة التحسين",
+      "code": "",
+      "group": "نماذج التقارير",
+      "slug": "improvement-plan",
+      "purpose": "النموذج الذي تُبنى عليه خطة التحسين وأولوياتها ومتابعتها.",
+      "usage": "تُملأ بأولويات مستخرجة من نهايات المعايير، ولكل أولوية أصل ظاهر في أحد المحكات.",
+      "version_watch": "اربط كل بند بمسؤول ومؤشر قياس وتاريخ.",
+      "topics": [
+        "التحسين المستمر",
+        "المتابعة"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/improvement-plan.docx",
+          "size": 946712
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/improvement-plan.pdf",
+          "size": 380483
+        }
+      ]
+    },
+    {
+      "id": "t-09",
+      "name": "توصيف الخبرة الميدانية",
+      "code": "",
+      "group": "نماذج التقارير",
+      "slug": "field-experience-specification",
+      "purpose": "يوثّق مكوّن التدريب أو الخبرة الميدانية في البرنامج إن وُجد.",
+      "usage": "يُرفق للبرامج التي تتضمن تدريباً ميدانياً أو تعاونياً.",
+      "version_watch": "يُفحص إصداره بصرياً.",
+      "topics": [
+        "الخبرة الميدانية"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/field-experience-specification.docx",
+          "size": 688690
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/field-experience-specification.pdf",
+          "size": 432996
+        }
+      ]
+    },
+    {
+      "id": "t-10",
+      "name": "تقرير الخبرة الميدانية",
+      "code": "",
+      "group": "نماذج التقارير",
+      "slug": "field-experience-report",
+      "purpose": "يوثّق تنفيذ الخبرة الميدانية ونتائج تقويمها.",
+      "usage": "يُرفق مع توصيف الخبرة الميدانية لإغلاق دائرة القياس فيها.",
+      "version_watch": "يُفحص إصداره بصرياً.",
+      "topics": [
+        "الخبرة الميدانية"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/field-experience-report.docx",
+          "size": 682735
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/field-experience-report.pdf",
+          "size": 363978
+        }
+      ]
+    },
+    {
+      "id": "t-11",
+      "name": "طلب التقدم للاعتماد البرامجي",
+      "code": "",
+      "group": "نماذج الإجراءات",
+      "slug": "accreditation-application",
+      "purpose": "نموذج التقدّم للاعتماد أو تجديده لدى المركز الوطني.",
+      "usage": "إجرائي، يُستوفى قبل رفع ملف الاعتماد.",
+      "version_watch": "اعتمد النسخة السارية وقت التقديم.",
+      "topics": [
+        "إجراءات الاعتماد"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/accreditation-application.docx",
+          "size": 414828
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/accreditation-application.pdf",
+          "size": 287447
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/pg/accreditation-application.docx",
+          "size": 795312
+        }
+      ]
+    },
+    {
+      "id": "t-12",
+      "name": "تقرير استيفاء شروط الاعتماد",
+      "code": "",
+      "group": "نماذج الإجراءات",
+      "slug": "eligibility-report",
+      "purpose": "يوثّق استيفاء البرنامج شروط التقدّم للاعتماد.",
+      "usage": "إجرائي، يُرفق ضمن ملف التقديم.",
+      "version_watch": "اعتمد النسخة السارية وقت التقديم.",
+      "topics": [
+        "إجراءات الاعتماد"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/eligibility-report.docx",
+          "size": 1826436
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/eligibility-report.pdf",
+          "size": 367695
+        }
+      ]
+    },
+    {
+      "id": "t-13",
+      "name": "الوثائق المطلوبة لزيارة المراجعة",
+      "code": "",
+      "group": "نماذج الإجراءات",
+      "slug": "review-visit-documents",
+      "purpose": "قائمة الوثائق التي يلزم تجهيزها قبل الزيارة الميدانية.",
+      "usage": "تُستخدم قائمةَ تحقق لتجهيز ملف الأدلة قبل الزيارة.",
+      "version_watch": "راجعها مبكراً؛ بعض بنودها يحتاج جهات خارجية ووقتاً.",
+      "topics": [
+        "تجهيز ملف الأدلة"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/review-visit-documents.pdf",
+          "size": 629631
+        },
+        {
+          "level": "pg",
+          "level_name": "الدراسات العليا",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/pg/review-visit-documents.pdf",
+          "size": 635503
+        }
+      ]
+    },
+    {
+      "id": "t-14",
+      "name": "تقرير التغيرات الجوهرية للبرامج المعتمدة",
+      "code": "",
+      "group": "نماذج الإجراءات",
+      "slug": "substantive-changes-report",
+      "purpose": "يوثّق أي تغيير جوهري يطرأ على البرنامج بعد اعتماده.",
+      "usage": "إجرائي، يُرفع عند حدوث التغيير لا في نهاية الدورة.",
+      "version_watch": "اعتمد النسخة السارية.",
+      "topics": [
+        "إجراءات الاعتماد"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/substantive-changes-report.docx",
+          "size": 845703
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/substantive-changes-report.pdf",
+          "size": 322477
+        }
+      ]
+    },
+    {
+      "id": "t-15",
+      "name": "الأخطاء المعلوماتية والاستجابة للتوصيات",
+      "code": "",
+      "group": "نماذج الإجراءات",
+      "slug": "factual-errors-response",
+      "purpose": "نموذج الرد على ما يرد من ملاحظات على البرنامج بعد التقييم.",
+      "usage": "إجرائي، يُستوفى في مرحلة ما بعد التقييم.",
+      "version_watch": "اعتمد النسخة السارية.",
+      "topics": [
+        "إجراءات الاعتماد"
+      ],
+      "files": [
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "docx",
+          "format_name": "Word",
+          "path": "files/templates/ug/factual-errors-response.docx",
+          "size": 1884406
+        },
+        {
+          "level": "ug",
+          "level_name": "البكالوريوس",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/ug/factual-errors-response.pdf",
+          "size": 380464
+        }
+      ]
+    },
+    {
+      "id": "t-16",
+      "name": "معايير الاعتماد البرامجي",
+      "code": "",
+      "group": "معايير ومراجع",
+      "slug": "program-accreditation-standards",
+      "scope": "common",
+      "purpose": "وثيقة المعايير والمحكات التي يُقاس عليها البرنامج — مرجع نصوص المحكات نفسها.",
+      "usage": "مرجع نصّ المحك: انقل ألفاظه حرفياً وعالج كل عبارة مفتاحية فيه بفقرة مستقلة.",
+      "version_watch": "اعتمد الإصدار المطوَّر السارية معاييره على برنامجك.",
+      "topics": [
+        "المعايير والمحكات"
+      ],
+      "files": [
+        {
+          "level": "common",
+          "level_name": "مشترك",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/common/program-accreditation-standards.pdf",
+          "size": 1207739
+        }
+      ]
+    },
+    {
+      "id": "t-17",
+      "name": "معايير اعتماد برامج الدراسات العليا",
+      "code": "",
+      "group": "معايير ومراجع",
+      "slug": "postgraduate-accreditation-standards",
+      "scope": "common",
+      "purpose": "وثيقة معايير ومحكات برامج الدراسات العليا.",
+      "usage": "مرجع نصّ المحك لبرامج الماجستير والدكتوراه.",
+      "version_watch": "اعتمد الإصدار الساري على برنامجك.",
+      "topics": [
+        "المعايير والمحكات"
+      ],
+      "files": [
+        {
+          "level": "common",
+          "level_name": "مشترك",
+          "format": "pdf",
+          "format_name": "PDF",
+          "path": "files/templates/common/postgraduate-accreditation-standards.pdf",
+          "size": 1408532
+        }
+      ]
+    }
+  ],
+  "items": [
     {
       "id": "u-01",
       "name": "الدليل التنظيمي لجامعة الطائف",
@@ -311,7 +682,14 @@
         "الصلاحيات",
         "المسؤوليات",
         "تنظيم"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/organizational-manual-tu.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 6506312,
+        "pages": 162
+      }
     },
     {
       "id": "u-02",
@@ -350,7 +728,14 @@
         "اللجان",
         "الصلاحيات",
         "الهيكل"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/organizational-manual-colleges.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 8919174,
+        "pages": 227
+      }
     },
     {
       "id": "u-03",
@@ -359,14 +744,14 @@
       "issuer": "جامعة الطائف",
       "category": "لوائح وأنظمة",
       "status": "معتمد",
-      "version_watch": "⚠️ ملاحظة مراجعة مؤكدة: أُرفقت نسخة قديمة في محكات ٢-٢-١ و٢-٣-٣ و٣-٠-١ بينما نسخة ١٤٤٥هـ متوفرة في الدليل. اعتمد الأحدث ووحّدها في كل المواضع.",
+      "version_watch": "⚠️ من أكثر الوثائق عرضة لخطأ النسخة القديمة. تأكد أن نسخة ١٤٤٥هـ هي المعتمدة في كل محك يُحيل إليها.",
       "topics": [
         "الخطة الدراسية",
         "سياسات التقويم",
         "حقوق الطلاب"
       ],
       "usage": "الإطار المؤسسي لمحكات المنهج والتقويم وتزويد الطلاب بالمعلومات. اذكر سنة اللائحة في المتن قبل &.",
-      "notes": "من أكثر الوثائق التي وقع فيها خطأ النسخة القديمة.",
+      "notes": "وحّد سنة اللائحة في جميع المحكات التي تُحيل إليها قبل التسليم.",
       "criteria_ug": [
         "1-1-3",
         "1-2-2",
@@ -401,7 +786,14 @@
         "التسجيل",
         "القبول",
         "التحويل"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/study-exam-regulations.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 3124629,
+        "pages": 61
+      }
     },
     {
       "id": "u-04",
@@ -452,7 +844,14 @@
         "القياس",
         "مستويات",
         "الإطار الوطني للمؤهلات"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/learning-outcomes-guide.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 6329227,
+        "pages": 115
+      }
     },
     {
       "id": "u-05",
@@ -490,7 +889,14 @@
         "أساليب التقويم",
         "تنوع التقييم",
         "طرق التدريس"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/teaching-assessment-strategies.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 2844258,
+        "pages": 120
+      }
     },
     {
       "id": "u-06",
@@ -499,7 +905,7 @@
       "issuer": "جامعة الطائف",
       "category": "وثائق استراتيجية",
       "status": "معتمد",
-      "version_watch": "⚠️ طلب فريق المراجعة النسخة المحدَّثة من سمات الخريجين — يتوقف على تسلّمها من العمادة.",
+      "version_watch": "اعتمد الإصدار الثالث (٢٠٢٥) من دليل خصائص الخريجين، وهو النسخة السارية.",
       "topics": [
         "اتساق النواتج مع المستوى المؤسسي"
       ],
@@ -525,7 +931,14 @@
         "سمات الخريج",
         "الخريج",
         "مواصفات الخريج"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/graduate-attributes-guide.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 4225452,
+        "pages": 44
+      }
     },
     {
       "id": "u-07",
@@ -534,7 +947,7 @@
       "issuer": "جامعة الطائف",
       "category": "وثائق استراتيجية",
       "status": "معتمد",
-      "version_watch": "⚠️ طلب فريق المراجعة نصّ رسالة الجامعة كما ورد في الخطة الاستراتيجية — يلزم اعتماد النص الحرفي.",
+      "version_watch": "انقل نصّ رسالة الجامعة حرفياً كما ورد في الخطة الاستراتيجية، بلا إعادة صياغة.",
       "topics": [
         "اتساق الرسالة والأهداف"
       ],
@@ -557,7 +970,14 @@
         "الأهداف الاستراتيجية",
         "الخطة الاستراتيجية",
         "التوجهات"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/strategic-plan-2023-2027.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 10646486,
+        "pages": 87
+      }
     },
     {
       "id": "u-08",
@@ -591,7 +1011,14 @@
         "إدارة الجودة",
         "التحسين المستمر",
         "المراجعة الداخلية"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/quality-management-manual.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 6731015,
+        "pages": 107
+      }
     },
     {
       "id": "u-09",
@@ -646,7 +1073,14 @@
         "أعضاء هيئة التدريس",
         "الاحتياجات التدريبية",
         "برامج تدريبية"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/professional-development-guide.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 1261018,
+        "pages": 19
+      }
     },
     {
       "id": "u-10",
@@ -684,7 +1118,14 @@
         "التميز",
         "تقييم عضو هيئة التدريس",
         "الأداء الوظيفي"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/faculty-evaluation-policy.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 897770,
+        "pages": 11
+      }
     },
     {
       "id": "u-11",
@@ -716,7 +1157,14 @@
         "الانتحال",
         "أخلاقيات البحث",
         "السرقة العلمية"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/academic-integrity-regulation.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 1070143,
+        "pages": 24
+      }
     },
     {
       "id": "u-12",
@@ -730,7 +1178,7 @@
         "جودة أدوات التقويم"
       ],
       "usage": "الإطار المؤسسي لمحكات جودة التقويم؛ ويُستكمل بجدول مواصفات الاختبار (TOS) وبطاقات التحكيم.",
-      "notes": "⚠️ جداول مواصفات الاختبار (TOS) وبطاقات التحكيم غير موجودة في ملف الأدلة — من الأدلة الغائبة نمطياً.",
+      "notes": "⚠️ يُستكمل بجداول مواصفات الاختبار (TOS) وبطاقات التحكيم، وهي أدلة يلزم إعدادها مبكراً.",
       "criteria_ug": [
         "2-1-4",
         "3-0-1"
@@ -745,7 +1193,14 @@
         "تحليل نتائج",
         "التصحيح",
         "العدالة في التقويم"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/exam-quality-regulation.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 1467255,
+        "pages": 27
+      }
     },
     {
       "id": "u-13",
@@ -777,7 +1232,14 @@
         "الأنشطة الطلابية",
         "التأديب",
         "حقوق الطالب وواجباته"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/student-conduct-rules.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 2368516,
+        "pages": 19
+      }
     },
     {
       "id": "u-14",
@@ -812,7 +1274,14 @@
         "المرشد الأكاديمي",
         "الدعم الطلابي",
         "الخدمات الطلابية"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/academic-advising-guide.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 4733174,
+        "pages": 69
+      }
     },
     {
       "id": "u-15",
@@ -839,7 +1308,14 @@
         "التمييز",
         "تكافؤ الفرص",
         "الإنصاف"
-      ]
+      ],
+      "file": {
+        "path": "files/institutional/anti-discrimination-policy.pdf",
+        "format": "pdf",
+        "format_name": "PDF",
+        "size": 928876,
+        "pages": 19
+      }
     },
     {
       "id": "u-16",
@@ -1045,7 +1521,7 @@
       "topics": [
         "المراجعة والتحسين"
       ],
-      "usage": "دليل قوي على «آلية المراجعة» داخل السرد: مراجعة ← اكتشاف قصور ← إجراء ← نتيجة.",
+      "usage": "دليل قوي على اكتمال دائرة الجودة داخل السرد: مراجعة ← اكتشاف قصور ← إجراء ← نتيجة.",
       "notes": "",
       "criteria_ug": [
         "1-2-3"
@@ -1100,7 +1576,7 @@
         "مشاركة أصحاب المصلحة"
       ],
       "usage": "يُستشهد بها لإثبات إشراك سوق العمل في مراجعة الخطة والنواتج.",
-      "notes": "دليل محوري 🟠 — تكرر طلبه في التقرير.",
+      "notes": "دليل محوري 🟠 — وثّق اجتماعات اللجنة دورياً بمحاضر معتمدة.",
       "criteria_ug": [
         "1-1-1",
         "1-1-2",
@@ -1293,7 +1769,7 @@
       "issuer": "كلية الشريعة والأنظمة",
       "category": "تقارير وشواهد",
       "status": "معتمد",
-      "version_watch": "⚠️ خطأ فني مؤكد سابقاً في جدول عبء التدريس: عُرضت نسب مئوية ومجموع الشطرين ٨٠.٥٦٪ (جمع لا متوسط). أعد حساب كل متوسط.",
+      "version_watch": "⚠️ تحقّق من جداول عبء التدريس ونسب الطلاب: المتوسط بين الشطرين يُحسب متوسطاً لا مجموعاً.",
       "topics": [
         "هيئة التدريس والكوادر"
       ],
@@ -1355,7 +1831,7 @@
       "issuer": "البرنامج/القسم",
       "category": "وثائق استراتيجية",
       "status": "معتمد",
-      "version_watch": "⚠️ موجودة كملف إكسل داخلي لكنها لم تُرفع ضمن الأدلة — والوثيقة غير المرفوعة تُحسب غائبة عند المراجع.",
+      "version_watch": "⚠️ ارفعها ضمن ملف الأدلة بصيغة تقرير معتمد؛ الوثيقة غير المرفوعة تُحسب غائبة.",
       "topics": [
         "التحسين المستمر"
       ],

@@ -31,6 +31,7 @@ const state = {
   statuses: loadStatuses(),
   stage: "s2",
   openLayer: 1,
+  institutionalSection: "templates",
   institutionalQuery: "",
   institutionalLevel: "all",
   institutionalStatus: "all",
@@ -93,6 +94,11 @@ const el = {
   layerDetail: document.querySelector("#layerDetail"),
   institutionalView: document.querySelector("#institutionalView"),
   institutionalIntro: document.querySelector("#institutionalIntro"),
+  institutionalSections: document.querySelector("#institutionalSections"),
+  institutionalLevelField: document.querySelector("#institutionalLevelField"),
+  institutionalStatusField: document.querySelector("#institutionalStatusField"),
+  institutionalProgramField: document.querySelector("#institutionalProgramField"),
+  workflowProgress: document.querySelector("#workflowProgress"),
   institutionalRule: document.querySelector("#institutionalRule"),
   institutionalSearch: document.querySelector("#institutionalSearch"),
   institutionalLevelFilter: document.querySelector("#institutionalLevelFilter"),
@@ -291,6 +297,17 @@ function bindEvents() {
     renderWorkflow();
   });
 
+  el.stageDetail.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-stage-step]");
+    if (!nav) return;
+    const order = workflow.stages.findIndex((item) => item.id === state.stage);
+    const next = order + Number(nav.dataset.stageStep);
+    if (next < 0 || next >= workflow.stages.length) return;
+    state.stage = workflow.stages[next].id;
+    renderWorkflow();
+    el.stageDetail.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
   el.layerDetail.addEventListener("click", (event) => {
     const button = event.target.closest("[data-layer-item][data-layer-status]");
     if (!button) return;
@@ -300,6 +317,15 @@ function bindEvents() {
     else state.layerStatuses[key] = value;
     saveStore(LAYER_STORE_KEY, state.layerStatuses);
     renderWorkflow();
+  });
+
+  el.institutionalSections.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-institutional-section]");
+    if (!button) return;
+    state.institutionalSection = button.dataset.institutionalSection;
+    state.institutionalQuery = "";
+    el.institutionalSearch.value = "";
+    renderInstitutional();
   });
 
   el.institutionalSearch.addEventListener("input", (event) => {
@@ -1297,20 +1323,43 @@ const LAYER_STATUS = {
 function renderWorkflow() {
   if (!workflow || !classification) return;
   el.workflowPrinciple.textContent = workflow.metadata.principle;
+  renderWorkflowProgress();
   renderStageTrack();
   renderStageDetail();
   renderLayerBoard();
 }
 
+function stageIndex() {
+  const found = workflow.stages.findIndex((item) => item.id === state.stage);
+  return found < 0 ? 0 : found;
+}
+
+function renderWorkflowProgress() {
+  const order = stageIndex() + 1;
+  const total = workflow.stages.length;
+  const percent = Math.round((order / total) * 100);
+  el.workflowProgress.innerHTML = `
+    <div class="hero-dial" style="--dial:${percent}%">
+      <span class="hero-dial-value">${formatNumber(order)}<small>/${formatNumber(total)}</small></span>
+    </div>
+    <div class="hero-dial-caption">
+      <strong>المرحلة الحالية</strong>
+      <span>${escapeHtml(workflow.stages[stageIndex()].name)}</span>
+    </div>
+  `;
+}
+
 function renderStageTrack() {
+  const current = stageIndex();
   el.stageTrack.innerHTML = workflow.stages
-    .map((stage) => {
-      const active = stage.id === state.stage;
+    .map((stage, index) => {
+      const stateCls = index < current ? "is-past" : index === current ? "is-active" : "";
       return `
-        <button class="stage-chip ${active ? "is-active" : ""}" type="button" role="tab"
-          aria-selected="${active}" data-stage="${stage.id}">
-          <span class="stage-num">${formatNumber(stage.order)}</span>
-          <span class="stage-name">${escapeHtml(stage.name)}</span>
+        <button class="journey-node ${stateCls}" type="button" role="tab"
+          aria-selected="${index === current}" data-stage="${stage.id}">
+          <span class="journey-dot">${index < current ? icon("i-check") : formatNumber(stage.order)}</span>
+          <span class="journey-label">${escapeHtml(stage.name)}</span>
+          <span class="journey-skill">${escapeHtml(stage.question)}</span>
         </button>
       `;
     })
@@ -1318,9 +1367,13 @@ function renderStageTrack() {
 }
 
 function renderStageDetail() {
-  const stage = workflow.stages.find((item) => item.id === state.stage) || workflow.stages[0];
-  const list = (title, values) => `
-    <div class="stage-col">
+  const index = stageIndex();
+  const stage = workflow.stages[index];
+  const total = workflow.stages.length;
+  const prev = index > 0 ? workflow.stages[index - 1] : null;
+  const next = index < total - 1 ? workflow.stages[index + 1] : null;
+  const list = (title, values, mod) => `
+    <div class="stage-col ${mod}">
       <h4>${title}</h4>
       <ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>
     </div>
@@ -1329,7 +1382,7 @@ function renderStageDetail() {
   el.stageDetail.innerHTML = `
     <header class="stage-head">
       <div>
-        <p class="eyebrow">المرحلة ${formatNumber(stage.order)} من ${formatNumber(workflow.stages.length)}</p>
+        <p class="eyebrow">المرحلة ${formatNumber(stage.order)} من ${formatNumber(total)}</p>
         <h3>${escapeHtml(stage.name)}</h3>
         <p class="stage-question">${escapeHtml(stage.question)}</p>
       </div>
@@ -1337,19 +1390,36 @@ function renderStageDetail() {
         ${icon("i-link")} ${escapeHtml(stage.link.label)}
       </button>
     </header>
+
     <p class="stage-purpose">${escapeHtml(stage.purpose)}</p>
+
     <div class="stage-cols">
-      ${list("المدخلات", stage.inputs)}
-      ${list("المخرجات", stage.outputs)}
+      ${list("المدخلات", stage.inputs, "is-in")}
+      ${list("المخرجات", stage.outputs, "is-out")}
     </div>
-    <div class="stage-gate">
-      <span class="gate-label">بوابة الانتقال</span>
-      <p>${escapeHtml(stage.gate)}</p>
+
+    <div class="stage-panels">
+      <div class="stage-gate">
+        <span class="gate-label">${icon("i-gate")} بوابة الانتقال</span>
+        <p>${escapeHtml(stage.gate)}</p>
+      </div>
+      <div class="stage-rule">
+        <span class="gate-label">${icon("i-spark")} قاعدة هذه المرحلة</span>
+        <p>${escapeHtml(stage.rule)}</p>
+      </div>
     </div>
-    <div class="stage-foot">
+
+    <footer class="stage-foot">
       <span class="mini-chip">المهارة: ${escapeHtml(stage.skill)}</span>
-      <span class="warn-chip">${icon("i-alert")} ${escapeHtml(stage.review_link)}</span>
-    </div>
+      <div class="stage-nav">
+        <button class="ghost-button" type="button" data-stage-step="-1" ${prev ? "" : "disabled"}>
+          ${icon("i-arrow-start")} ${prev ? escapeHtml(prev.name) : "بداية المسار"}
+        </button>
+        <button class="ghost-button" type="button" data-stage-step="1" ${next ? "" : "disabled"}>
+          ${next ? escapeHtml(next.name) : "نهاية المسار"} ${icon("i-arrow-end")}
+        </button>
+      </div>
+    </footer>
   `;
 }
 
@@ -1507,11 +1577,56 @@ function renderLayerItem(layer, item) {
 
 /* ───────────────────────── سجل الأدلة المؤسسية ───────────────────────── */
 
+function formatBytes(bytes) {
+  if (!bytes) return "";
+  const mb = bytes / 1048576;
+  if (mb >= 1) return `${formatNumber(mb.toFixed(1))} م.ب`;
+  return `${formatNumber(Math.max(1, Math.round(bytes / 1024)))} ك.ب`;
+}
+
+function downloadLink(file, label) {
+  const name = label || `${file.format_name}${file.level_name ? ` · ${file.level_name}` : ""}`;
+  return `
+    <a class="download-chip is-${escapeHtml(file.format)}" href="${escapeHtml(file.path)}" download>
+      ${icon("i-download")}
+      <span>${escapeHtml(name)}</span>
+      <small>${escapeHtml(formatBytes(file.size))}</small>
+    </a>
+  `;
+}
+
 function renderInstitutional() {
   if (!institutional) return;
   const meta = institutional.metadata;
-  el.institutionalIntro.textContent = meta.description;
-  el.institutionalRule.innerHTML = `${icon("i-alert")}<div><strong>قاعدة أحدث نسخة</strong><p>${escapeHtml(meta.golden_rule)}</p></div>`;
+  const templatesMode = state.institutionalSection === "templates";
+  const section = meta.sections.find((item) => item.id === state.institutionalSection) || meta.sections[0];
+
+  el.institutionalIntro.textContent = section.description;
+
+  el.institutionalSections.innerHTML = meta.sections
+    .map((item) => {
+      const count = item.id === "templates" ? institutional.templates.length : institutional.items.length;
+      return `
+        <button class="segment ${item.id === state.institutionalSection ? "is-active" : ""}" type="button"
+          role="tab" aria-selected="${item.id === state.institutionalSection}" data-institutional-section="${item.id}">
+          ${icon(item.id === "templates" ? "i-file" : "i-bank")}
+          <span>${escapeHtml(item.name)}</span>
+          <strong>${formatNumber(count)}</strong>
+        </button>
+      `;
+    })
+    .join("");
+
+  el.institutionalRule.innerHTML = `${icon(templatesMode ? "i-spark" : "i-alert")}<div><strong>${
+    templatesMode ? "القالب وعاء لا دليل" : "قاعدة أحدث نسخة"
+  }</strong><p>${escapeHtml(templatesMode ? meta.templates_rule : meta.golden_rule)}</p></div>`;
+
+  el.institutionalLevelField.hidden = templatesMode;
+  el.institutionalStatusField.hidden = templatesMode;
+  el.institutionalProgramField.hidden = templatesMode;
+  el.institutionalSearch.placeholder = templatesMode
+    ? "بحث باسم القالب أو رمزه"
+    : "بحث باسم الوثيقة أو الجهة أو الموضوع";
 
   if (!el.institutionalLevelFilter.options.length) {
     el.institutionalLevelFilter.innerHTML = `<option value="all">كل المستويات</option>${meta.levels
@@ -1519,16 +1634,89 @@ function renderInstitutional() {
       .join("")}`;
   }
 
+  if (templatesMode) renderTemplatesSection();
+  else renderRegistrySection();
+}
+
+function renderTemplatesSection() {
+  const templates = filteredTemplates();
+  const all = institutional.templates;
+  const withFiles = all.filter((item) => item.files.length).length;
+  const fileCount = all.reduce((sum, item) => sum + item.files.length, 0);
+  const totalSize = all.reduce((sum, item) => sum + item.files.reduce((s, f) => s + f.size, 0), 0);
+
+  el.institutionalSummary.innerHTML = `
+    ${metric("القوالب المعروضة", formatNumber(templates.length), `من ${formatNumber(all.length)} قالب في الكتالوج`)}
+    ${metric("قوالب قابلة للتنزيل", formatNumber(withFiles), "بصيغتَي Word و PDF حيث توفرتا")}
+    ${metric("ملفات جاهزة", formatNumber(fileCount), formatBytes(totalSize))}
+    ${metric("الجهة المصدِرة", "المركز الوطني", "للتقويم والاعتماد الأكاديمي")}
+  `;
+
+  el.institutionalGrid.innerHTML = templates.length
+    ? templates.map(renderTemplateCard).join("")
+    : `<p class="empty-cell">لا توجد قوالب مطابقة للبحث الحالي.</p>`;
+}
+
+function renderTemplateCard(item) {
+  const groups = {};
+  item.files.forEach((file) => {
+    (groups[file.level] = groups[file.level] || { name: file.level_name, files: [] }).files.push(file);
+  });
+
+  return `
+    <article class="doc-card is-template">
+      <header>
+        <div>
+          <span class="mono-value">${escapeHtml(item.code || item.group)}</span>
+          <h3>${escapeHtml(item.name)}</h3>
+          <p class="doc-issuer">${escapeHtml(item.purpose)}</p>
+        </div>
+        <div class="doc-badges">
+          <span class="state-pill info">${escapeHtml(item.group)}</span>
+        </div>
+      </header>
+
+      <p class="doc-usage"><strong>كيف يُستعمل:</strong> ${escapeHtml(item.usage)}</p>
+      ${item.version_watch ? `<p class="doc-version">${escapeHtml(item.version_watch)}</p>` : ""}
+
+      <div class="doc-tags">
+        ${(item.topics || []).map((topic) => `<span class="tag soft">${escapeHtml(topic)}</span>`).join("")}
+      </div>
+
+      ${
+        item.files.length
+          ? `<div class="download-block">
+              ${Object.values(groups)
+                .map(
+                  (group) => `
+                <div class="download-row">
+                  <span class="download-row-label">${escapeHtml(group.name)}</span>
+                  <div class="download-chips">
+                    ${group.files.map((file) => downloadLink(file, file.format_name)).join("")}
+                  </div>
+                </div>
+              `,
+                )
+                .join("")}
+            </div>`
+          : `<p class="doc-note">لم يُرفع ملف هذا القالب بعد.</p>`
+      }
+    </article>
+  `;
+}
+
+function renderRegistrySection() {
   const items = filteredInstitutional();
   const programKey = state.institutionalProgram === "pg" ? "criteria_pg" : "criteria_ug";
   const needsAction = items.filter((item) => item.status === "للتأكيد").length;
   const linked = items.reduce((sum, item) => sum + (item[programKey]?.length || 0), 0);
+  const downloadable = institutional.items.filter((item) => item.file).length;
 
   el.institutionalSummary.innerHTML = `
     ${metric("الوثائق المعروضة", formatNumber(items.length), `من ${formatNumber(institutional.items.length)} وثيقة في السجل`)}
+    ${metric("متاحة للتنزيل", formatNumber(downloadable), "لوائح وأدلة جامعية مرفوعة")}
     ${metric("تحتاج تأكيداً", formatNumber(needsAction), "غير متوفرة أو تنتظر جهة خارجية")}
     ${metric("إحالات المحكات", formatNumber(linked), state.institutionalProgram === "pg" ? "الدراسات العليا" : "البكالوريوس")}
-    ${metric("المستويات", formatNumber(meta.levels.length), "وطني · جامعي · كلية")}
   `;
 
   el.institutionalGrid.innerHTML = items.length
@@ -1552,7 +1740,7 @@ function renderInstitutionalCard(item, programKey) {
           <p class="doc-issuer">${escapeHtml(item.issuer)}</p>
         </div>
         <div class="doc-badges">
-          <span class="state-pill ${item.level === "national" ? "info" : item.level === "university" ? "ok" : "muted"}">${escapeHtml(levelName)}</span>
+          <span class="state-pill ${item.level === "university" ? "ok" : "muted"}">${escapeHtml(levelName)}</span>
           <span class="state-pill ${item.status === "معتمد" ? "ok" : "warn"}">${escapeHtml(item.status)}</span>
         </div>
       </header>
@@ -1573,6 +1761,19 @@ function renderInstitutionalCard(item, programKey) {
       </div>
 
       ${
+        item.file
+          ? `<div class="download-block">
+              <div class="download-row">
+                <span class="download-row-label">نسخة الوثيقة</span>
+                <div class="download-chips">
+                  ${downloadLink(item.file, item.file.pages ? `PDF · ${formatNumber(item.file.pages)} صفحة` : "PDF")}
+                </div>
+              </div>
+            </div>`
+          : ""
+      }
+
+      ${
         criteria.length
           ? `<div class="doc-criteria">
               <span class="doc-criteria-label">محكات مقترحة (${formatNumber(criteria.length)})</span>
@@ -1589,6 +1790,17 @@ function renderInstitutionalCard(item, programKey) {
       }
     </article>
   `;
+}
+
+function filteredTemplates() {
+  const query = normalize(state.institutionalQuery);
+  return institutional.templates.filter((item) => {
+    if (!query) return true;
+    const blob = normalize(
+      [item.name, item.code, item.group, item.purpose, item.usage, (item.topics || []).join(" ")].join(" "),
+    );
+    return blob.includes(query);
+  });
 }
 
 function filteredInstitutional() {
@@ -1611,7 +1823,7 @@ const WRITING_SECTIONS = [
   { id: "phrasing", label: "الصياغة المثالية" },
   { id: "example", label: "نموذج محك مكتمل" },
   { id: "checklist", label: "قائمة التحقق" },
-  { id: "review", label: "أخطاء المراجعة" },
+  { id: "review", label: "الأخطاء الشائعة" },
 ];
 
 function renderWriting() {
@@ -1644,7 +1856,7 @@ function writingRule() {
     <article class="doc-panel">
       <span class="eyebrow">القاعدة</span>
       <h3>${escapeHtml(rule.headline)}</h3>
-      <div class="rule-banner"><div><strong>مصدر القاعدة</strong><p>${escapeHtml(rule.finding)}</p><p>${escapeHtml(rule.verification)}</p></div></div>
+      <div class="rule-banner"><div><strong>نصّ القاعدة</strong><p>${escapeHtml(rule.statement)}</p><p>${escapeHtml(rule.verification)}</p></div></div>
       <div class="two-cols">
         <div class="do-box">
           <h4>${icon("i-check")} افعل داخل المحك</h4>
@@ -1842,11 +2054,11 @@ function writingChecklist() {
 function writingReview() {
   return `
     <article class="doc-panel">
-      <span class="eyebrow">تعلّم من المراجعة</span>
-      <h3>أخطاء فريق المراجعة المتكررة</h3>
-      <p class="panel-note">${escapeHtml(writingGuide.metadata.basis)}</p>
+      <span class="eyebrow">قبل التسليم</span>
+      <h3>${escapeHtml(writingGuide.pitfalls_headline)}</h3>
+      <p class="panel-note">${escapeHtml(writingGuide.pitfalls_note)}</p>
       <div class="finding-list">
-        ${writingGuide.review_findings
+        ${writingGuide.pitfalls
           .map(
             (item) => `
           <div class="finding-item">
@@ -1854,7 +2066,7 @@ function writingReview() {
             <div>
               <h4>${escapeHtml(item.title)}</h4>
               <p><strong>كيف تكتشفه:</strong> ${escapeHtml(item.how)}</p>
-              <p class="finding-impact">${escapeHtml(item.impact)}</p>
+              <p class="finding-impact">${escapeHtml(item.why)}</p>
             </div>
           </div>
         `,
