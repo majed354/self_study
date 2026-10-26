@@ -2853,3 +2853,550 @@ h1 {
     box-shadow: none;
   }
 }
+
+/* ══════════════ بنك النماذج ══════════════ */
+
+/* شريط التبويبات بعد إضافة التبويب السادس: صف واحد في الشاشات العريضة، و٣×٢ في المتوسطة */
+.mode-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.mode-tab {
+  padding-inline: 12px;
+}
+
+@media (max-width: 1080px) and (min-width: 781px) {
+  .mode-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .mode-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.samples-source {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.8;
+}
+
+.samples-source strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.samples-notes {
+  display: grid;
+  gap: 8px;
+}
+
+.access-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  border-radius: var(--radius);
+  background: var(--blue-2);
+  padding: 10px 14px;
+  color: var(--blue);
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+.access-note svg,
+.sample-pending svg,
+.sample-build summary svg,
+.build-section h5 svg,
+.samples-empty svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.access-note svg {
+  margin-top: 5px;
+}
+
+.samples-controls {
+  grid-template-columns: minmax(260px, 1.6fr) repeat(2, minmax(180px, 0.8fr));
+}
+
+.samples-body {
+  display: grid;
+  gap: 30px;
+}
+
+.samples-collection {
+  display: grid;
+  gap: 18px;
+}
+
+.samples-collection-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.samples-collection-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.22rem;
+}
+
+.samples-collection-head p {
+  max-width: 92ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.85;
+}
+
+.samples-group {
+  display: grid;
+  gap: 12px;
+}
+
+.samples-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.samples-group-head::before {
+  content: "";
+  width: 4px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--green), var(--teal));
+}
+
+.samples-group-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.samples-group-head span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.samples-group-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.85;
+}
+
+/* صف نطاق الشواهد: يحاكي جدول اللجنة (الشواهد المطلوبة | الغرض | الأهمية) */
+.scope-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.5fr) auto;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.scope-row > div {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  border-inline-start: 1px solid var(--line);
+}
+
+.scope-row > div:first-child {
+  border-inline-start: 0;
+}
+
+.scope-row dt {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+  padding: 7px 14px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.scope-row dd {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.scope-importance dd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.samples-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  align-items: start;
+}
+
+.sample-card {
+  gap: 12px;
+}
+
+.doc-card .sample-head {
+  display: grid;
+  gap: 4px;
+}
+
+.sample-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sample-pills .state-pill {
+  min-height: 26px;
+  padding: 3px 10px;
+}
+
+.sample-title {
+  margin: 6px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.sample-summary {
+  margin: 0;
+  color: #33413d;
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+.sample-sources {
+  display: grid;
+  gap: 6px;
+}
+
+.sample-sources .tag {
+  min-height: 28px;
+  white-space: normal;
+  text-align: start;
+  line-height: 1.5;
+}
+
+.sample-build {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.sample-build summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  color: var(--green);
+  font-size: 0.9rem;
+  font-weight: 800;
+  list-style: none;
+  cursor: pointer;
+}
+
+.sample-build summary::-webkit-details-marker {
+  display: none;
+}
+
+.sample-build summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-inline-start: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.16s ease;
+}
+
+.sample-build[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.sample-build summary:focus-visible {
+  border-radius: var(--radius);
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+.sample-build[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.build-body {
+  display: grid;
+  gap: 14px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--surface);
+  padding: 14px;
+}
+
+.build-section h5 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  color: var(--teal);
+  font-size: 0.85rem;
+}
+
+.build-section.is-why h5 {
+  color: var(--green);
+}
+
+.build-section ol,
+.build-section ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-inline-start: 20px;
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+.build-section.is-warn {
+  border-inline-start: 3px solid var(--amber);
+  border-radius: var(--radius-sm);
+  background: var(--amber-2);
+  padding: 10px 12px;
+}
+
+.build-section.is-warn h5 {
+  color: var(--amber);
+}
+
+.sample-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.sample-actions .text-button {
+  min-height: 38px;
+  padding: 7px 12px;
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+
+.sample-pending {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 6px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+.sample-code {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.sample-card.is-highlight {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(27, 119, 137, 0.22), var(--shadow-lift);
+}
+
+.samples-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 36px 20px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.samples-empty svg {
+  width: 30px;
+  height: 30px;
+  color: var(--teal);
+}
+
+.samples-empty h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.samples-empty p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+/* كتلة «نماذج تطبيقية لهذا المحك» في تبويب المحكات */
+.criterion-samples .ci-head {
+  flex-wrap: wrap;
+}
+
+.sample-tag {
+  border: 1px solid transparent;
+  white-space: normal;
+  text-align: start;
+  line-height: 1.5;
+}
+
+.sample-tag:hover,
+.sample-tag:focus-visible {
+  border-color: var(--teal);
+  background: var(--blue-2);
+  color: var(--teal);
+  outline: none;
+}
+
+@media (max-width: 1100px) {
+  .samples-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .samples-controls .searchbox {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 780px) {
+  #samplesSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .samples-grid,
+  .scope-row {
+    grid-template-columns: 1fr;
+  }
+
+  .scope-row > div {
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .scope-row > div:first-child {
+    border-top: 0;
+  }
+
+  .scope-importance dd {
+    justify-content: flex-start;
+  }
+
+  .samples-collection-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sample-code {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .samples-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .samples-controls,
+  .sample-actions .text-button,
+  .sample-pending,
+  .sample-build summary::after {
+    display: none !important;
+  }
+
+  .sample-build::details-content {
+    content-visibility: visible;
+    display: block;
+  }
+
+  /* تدفق كتلي بدل الشبكة: تجزئة الشبكات عبر الصفحات تُداخل العناصر في Chromium */
+  .samples-body,
+  .samples-collection,
+  .samples-group,
+  .samples-grid,
+  .doc-card.sample-card,
+  .build-body {
+    display: block;
+  }
+
+  .samples-collection + .samples-collection {
+    margin-top: 22px;
+  }
+
+  .samples-collection > * + *,
+  .samples-group > * + *,
+  .samples-grid > * + *,
+  .doc-card.sample-card > * + * {
+    margin-top: 10px;
+  }
+
+  .sample-build {
+    background: transparent;
+  }
+
+  .build-section {
+    display: inline-block;
+    width: calc(50% - 8px);
+    margin: 0 0 10px;
+    vertical-align: top;
+  }
+
+  .build-section:nth-child(odd) {
+    margin-inline-end: 12px;
+  }
+
+  #samplesSummary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .samples-group-head,
+  .samples-collection-head,
+  .scope-row {
+    break-after: avoid;
+  }
+
+  .doc-card.sample-card {
+    break-inside: auto;
+  }
+
+  .sample-head,
+  .build-section,
+  .scope-row {
+    break-inside: avoid;
+  }
+}
+
+.samples-group-head .text-button {
+  margin-inline-start: auto;
+}

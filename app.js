@@ -6,6 +6,7 @@ const SOURCES = {
   institutional: "data/institutional-evidence.json",
   writing: "data/writing-guide.json",
   workflow: "data/workflow.json",
+  samples: "data/samples.json",
 };
 
 const STORE_KEY = "selfStudyEvidenceAudit.v1";
@@ -37,6 +38,10 @@ const state = {
   institutionalStatus: "all",
   institutionalProgram: "ug",
   writingSection: "rule",
+  samplesCollection: "all",
+  samplesQuery: "",
+  samplesCriterion: "all",
+  samplesGroup: "all",
   layerStatuses: loadStore(LAYER_STORE_KEY),
   checklistState: loadStore(CHECKLIST_STORE_KEY),
 };
@@ -46,6 +51,7 @@ let classification = null;
 let institutional = null;
 let writingGuide = null;
 let workflow = null;
+let samples = null;
 let libraryData = null;
 let libraryPromise = null;
 let toastTimer = 0;
@@ -112,25 +118,45 @@ const el = {
   writingTabs: document.querySelector("#writingTabs"),
   writingBody: document.querySelector("#writingBody"),
   printWriting: document.querySelector("#printWriting"),
+  samplesView: document.querySelector("#samplesView"),
+  samplesIntro: document.querySelector("#samplesIntro"),
+  samplesSource: document.querySelector("#samplesSource"),
+  samplesCollections: document.querySelector("#samplesCollections"),
+  samplesRule: document.querySelector("#samplesRule"),
+  samplesAccess: document.querySelector("#samplesAccess"),
+  samplesSearch: document.querySelector("#samplesSearch"),
+  samplesCriterionFilter: document.querySelector("#samplesCriterionFilter"),
+  samplesGroupFilter: document.querySelector("#samplesGroupFilter"),
+  samplesSummary: document.querySelector("#samplesSummary"),
+  samplesBody: document.querySelector("#samplesBody"),
+  printSamples: document.querySelector("#printSamples"),
 };
 
 init();
 
 async function init() {
   try {
-    const [ug, pg, cls, inst, writing, flow] = await Promise.all([
+    const [ug, pg, cls, inst, writing, flow, sampleBank] = await Promise.all([
       fetch(SOURCES.ug).then((response) => response.json()),
       fetch(SOURCES.pg).then((response) => response.json()),
       fetch(SOURCES.classification).then((response) => response.json()),
       fetch(SOURCES.institutional).then((response) => response.json()),
       fetch(SOURCES.writing).then((response) => response.json()),
       fetch(SOURCES.workflow).then((response) => response.json()),
+      // بنك النماذج اختياري: تعذّر تحميله لا يوقف بقية التبويبات
+      fetch(SOURCES.samples)
+        .then((response) => (response.ok ? response.json() : null))
+        .catch((error) => {
+          console.warn("تعذر تحميل بنك النماذج", error);
+          return null;
+        }),
     ]);
 
     classification = cls;
     institutional = inst;
     writingGuide = writing;
     workflow = flow;
+    samples = prepareSamples(sampleBank);
     programs = {
       ug: prepareProgram(ug),
       pg: prepareProgram(pg),
@@ -219,6 +245,11 @@ function bindEvents() {
   });
 
   el.criterionFocus.addEventListener("click", (event) => {
+    const samplesJump = event.target.closest("[data-goto-samples]");
+    if (samplesJump) {
+      openSamplesForCriterion(samplesJump.dataset.gotoSamples, samplesJump.dataset.sample);
+      return;
+    }
     const jump = event.target.closest("[data-goto-view]");
     if (!jump) return;
     state.view = jump.dataset.gotoView;
@@ -363,6 +394,66 @@ function bindEvents() {
 
   el.printInstitutional.addEventListener("click", () => window.print());
   el.printWriting.addEventListener("click", () => window.print());
+  el.printSamples.addEventListener("click", () => window.print());
+
+  el.samplesCollections.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-samples-collection]");
+    if (!button) return;
+    state.samplesCollection = button.dataset.samplesCollection;
+    state.samplesGroup = "all";
+    renderSamples();
+  });
+
+  el.samplesSearch.addEventListener("input", (event) => {
+    state.samplesQuery = event.target.value.trim();
+    renderSamples();
+  });
+
+  el.samplesCriterionFilter.addEventListener("change", (event) => {
+    state.samplesCriterion = event.target.value;
+    renderSamples();
+  });
+
+  el.samplesGroupFilter.addEventListener("change", (event) => {
+    state.samplesGroup = event.target.value;
+    renderSamples();
+  });
+
+  el.samplesBody.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-open-criterion]");
+    if (chip) {
+      state.program = chip.dataset.program || state.program;
+      state.standard = "all";
+      state.query = "";
+      el.criterionSearch.value = "";
+      state.selectedCriterionId = chip.dataset.openCriterion;
+      state.view = "criteria";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const copy = event.target.closest("[data-copy-sample]");
+    if (copy) {
+      copySamplePath(copy.dataset.copySample);
+      return;
+    }
+    if (event.target.closest("[data-samples-reset]")) resetSamplesFilters();
+  });
+
+  // الطباعة تعرض تفاصيل «كيف تُبنى مثلها» مفتوحة ثم تعيدها لحالتها
+  let printOpened = [];
+  window.addEventListener("beforeprint", () => {
+    printOpened = [...el.samplesBody.querySelectorAll("details:not([open])")];
+    printOpened.forEach((details) => {
+      details.open = true;
+    });
+  });
+  window.addEventListener("afterprint", () => {
+    printOpened.forEach((details) => {
+      details.open = false;
+    });
+    printOpened = [];
+  });
 
   el.writingTabs.addEventListener("click", (event) => {
     const button = event.target.closest("[data-writing-section]");
@@ -591,6 +682,10 @@ function render() {
     renderWriting();
     return;
   }
+  if (state.view === "samples") {
+    renderSamples();
+    return;
+  }
   updateTabs();
   renderOverview();
   renderStandards();
@@ -611,6 +706,7 @@ function updateModeTabs() {
   el.workflowView.hidden = state.view !== "workflow";
   el.institutionalView.hidden = state.view !== "institutional";
   el.writingView.hidden = state.view !== "writing";
+  el.samplesView.hidden = state.view !== "samples";
   el.criteriaActions.hidden = state.view !== "criteria";
 }
 
@@ -749,7 +845,7 @@ function renderCriterion() {
     <div>
       <div class="criterion-meta">
         <span>${criterion.standardName}</span>
-        <span>محك ${criterion.id}</span>
+        <span>محك <bdi>${criterion.id}</bdi></span>
         <span>${formatNumber(criterion.evidencePlan.length)} أدلة</span>
       </div>
       <h2>${criterion.id}</h2>
@@ -765,6 +861,7 @@ function renderCriterion() {
       <span class="state-pill ${readiness.level}">${readiness.title}</span>
     </div>
     ${institutionalForCriterion(criterion.id)}
+    ${samplesForCriterion(criterion.id)}
   `;
 
   el.evidenceCount.textContent = `${formatNumber(criterion.evidencePlan.length)} أدلة`;
@@ -2075,4 +2172,536 @@ function writingReview() {
       </div>
     </article>
   `;
+}
+
+/* ───────────────────────── بنك النماذج ───────────────────────── */
+
+const SAMPLE_COLLECTION_ICONS = { exams: "i-check", surveys: "i-spark" };
+
+function prepareSamples(raw) {
+  if (!raw || !Array.isArray(raw.collections)) return null;
+  try {
+    const metadata = raw.metadata || {};
+    const collections = raw.collections.map((collection) => ({
+      ...collection,
+      groups: (collection.groups || []).map((group) => ({ ...group, collectionId: collection.id })),
+    }));
+    const groupIndex = new Map();
+    collections.forEach((collection) => {
+      collection.groups.forEach((group) => groupIndex.set(group.id, { group, collection }));
+    });
+    const fallbackGroup = { id: "_other", name: "عينات غير مصنفة", folder: "", collectionId: "" };
+
+    const items = (raw.items || [])
+      .filter((item) => item && item.id)
+      .map((item) => {
+        const found = groupIndex.get(item.group);
+        const group = found?.group || fallbackGroup;
+        const collection = found?.collection || null;
+        const criteria = [...new Set((item.criteria || []).map(String).filter(Boolean))];
+        return {
+          ...item,
+          criteria,
+          groupInfo: group,
+          collectionInfo: collection,
+          path: [metadata.drive_root, collection?.folder, group.folder, item.file].filter(Boolean).join("/"),
+          searchText: sampleSearchKey(
+            [
+              item.title,
+              item.summary,
+              item.type,
+              item.audience,
+              item.year,
+              item.evidence_code,
+              item.file,
+              group.name,
+              criteria.join(" "),
+              (item.keywords || []).join(" "),
+              (item.data_sources || []).join(" "),
+            ].join(" "),
+          ),
+        };
+      });
+
+    const unknownGroups = [...new Set(items.filter((item) => !item.collectionInfo).map((item) => item.group))];
+    if (unknownGroups.length) console.warn("بنك النماذج: فئات غير معرّفة في collections", unknownGroups);
+    return { metadata, collections, items };
+  } catch (error) {
+    console.error("بيانات بنك النماذج غير صالحة", error);
+    return null;
+  }
+}
+
+/* الأرقام الهندية والعربية سواء في البحث: «١٤٤٦» تطابق «1446» */
+function sampleSearchKey(value) {
+  return normalize(value).replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x0660));
+}
+
+function compareCriterionIds(a, b) {
+  const left = String(a).split("-").map(Number);
+  const right = String(b).split("-").map(Number);
+  for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+    const diff = (left[index] ?? -1) - (right[index] ?? -1);
+    if (diff) return diff;
+  }
+  return String(a).localeCompare(String(b));
+}
+
+function countSamples(count) {
+  if (count === 1) return "عينة واحدة";
+  if (count === 2) return "عينتان";
+  if (count >= 3 && count <= 10) return `${formatNumber(count)} عينات`;
+  return `${formatNumber(count)} عينة`;
+}
+
+function countPages(count) {
+  if (count === 1) return "صفحة واحدة";
+  if (count === 2) return "صفحتان";
+  if (count >= 3 && count <= 10) return `${formatNumber(count)} صفحات`;
+  return `${formatNumber(count)} صفحة`;
+}
+
+function safeExternalUrl(value) {
+  const url = String(value || "").trim();
+  return /^https?:\/\//i.test(url) ? url : "";
+}
+
+function samplesProgram() {
+  return samples?.metadata?.program || "ug";
+}
+
+function sampleCriterionText(id) {
+  return programs[samplesProgram()]?.criteria.find((criterion) => criterion.id === id)?.text || "";
+}
+
+function samplesInCollection() {
+  if (!samples) return [];
+  if (state.samplesCollection === "all") return samples.items;
+  return samples.items.filter((item) => item.collectionInfo?.id === state.samplesCollection);
+}
+
+function filteredSamples() {
+  const query = sampleSearchKey(state.samplesQuery);
+  return samplesInCollection().filter((item) => {
+    if (state.samplesGroup !== "all" && item.groupInfo.id !== state.samplesGroup) return false;
+    if (state.samplesCriterion !== "all" && !item.criteria.includes(state.samplesCriterion)) return false;
+    return !query || item.searchText.includes(query);
+  });
+}
+
+function setSamplesChromeHidden(hidden) {
+  ["#samplesCollections", "#samplesNotes", "#samplesControls", "#samplesSummary"].forEach((selector) => {
+    const node = document.querySelector(selector);
+    if (node) node.hidden = hidden;
+  });
+}
+
+function renderSamples() {
+  if (!samples) {
+    el.samplesIntro.textContent = "";
+    el.samplesSource.textContent = "";
+    setSamplesChromeHidden(true);
+    el.samplesBody.innerHTML = `
+      <div class="samples-empty">
+        ${icon("i-alert")}
+        <h3>تعذر تحميل بنك النماذج</h3>
+        <p>تحقق من وجود الملف <bdi>data/samples.json</bdi> وصحة بنيته، ثم أعد تحميل الصفحة.</p>
+      </div>
+    `;
+    return;
+  }
+
+  setSamplesChromeHidden(false);
+  const meta = samples.metadata;
+  el.samplesIntro.textContent = meta.intro || "";
+  el.samplesSource.innerHTML = meta.source_program
+    ? `<strong>مصدر العينات:</strong> ${escapeHtml(meta.source_program)}`
+    : "";
+  el.samplesSource.hidden = !meta.source_program;
+
+  if (
+    state.samplesCollection !== "all" &&
+    !samples.collections.some((collection) => collection.id === state.samplesCollection)
+  ) {
+    state.samplesCollection = "all";
+  }
+
+  el.samplesCollections.innerHTML = [
+    { id: "all", name: "الكل", scope: "جميع المجموعات", count: samples.items.length, iconId: "i-layers" },
+    ...samples.collections.map((collection) => ({
+      id: collection.id,
+      name: collection.name,
+      scope: collection.scope,
+      count: samples.items.filter((item) => item.collectionInfo?.id === collection.id).length,
+      iconId: SAMPLE_COLLECTION_ICONS[collection.id] || "i-file",
+    })),
+  ]
+    .map(
+      (entry) => `
+        <button class="segment ${entry.id === state.samplesCollection ? "is-active" : ""}" type="button"
+          role="tab" aria-selected="${entry.id === state.samplesCollection}" data-samples-collection="${escapeHtml(entry.id)}"
+          title="${escapeHtml(entry.scope || "")}">
+          ${icon(entry.iconId)}
+          <span>${escapeHtml(entry.name)}</span>
+          <strong>${formatNumber(entry.count)}</strong>
+        </button>
+      `,
+    )
+    .join("");
+
+  el.samplesRule.innerHTML = `${icon("i-spark")}<div><strong>قاعدة الاستفادة من العينات</strong><p>${escapeHtml(meta.rule || "")}</p></div>`;
+  el.samplesRule.hidden = !meta.rule;
+  el.samplesAccess.innerHTML = meta.access_note ? `${icon("i-lock")}<span>${escapeHtml(meta.access_note)}</span>` : "";
+  el.samplesAccess.hidden = !meta.access_note;
+
+  renderSamplesFilters();
+
+  const shown = filteredSamples();
+  renderSamplesSummary(shown);
+
+  if (!samples.items.length) {
+    el.samplesBody.innerHTML = `
+      <div class="samples-empty">
+        ${icon("i-layers")}
+        <h3>لم تُضف عينات بعد</h3>
+        <p>تُضاف البطاقات في <bdi>data/samples.json</bdi> ضمن الحقل <bdi>items</bdi>.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (!shown.length) {
+    el.samplesBody.innerHTML = `
+      <div class="samples-empty">
+        ${icon("i-search")}
+        <h3>لا توجد عينات مطابقة</h3>
+        <p>جرّب كلمة بحث أخرى، أو وسّع التصفية على كل المحكات وكل الفئات.</p>
+        <button class="text-button" type="button" data-samples-reset>${icon("i-reset")} مسح التصفية</button>
+      </div>
+    `;
+    return;
+  }
+
+  const blocks = samples.collections
+    .map((collection) => ({
+      collection,
+      groups: collection.groups
+        .map((group) => ({ group, items: shown.filter((item) => item.groupInfo.id === group.id) }))
+        .filter((entry) => entry.items.length),
+    }))
+    .filter((block) => block.groups.length);
+
+  const orphans = shown.filter((item) => !item.collectionInfo);
+  if (orphans.length) {
+    blocks.push({
+      collection: { id: "_other", name: "عينات غير مصنفة", scope: "", description: "عينات لا تطابق فئتها أي مجموعة معرّفة في البيانات." },
+      groups: [{ group: orphans[0].groupInfo, items: orphans }],
+    });
+  }
+
+  el.samplesBody.innerHTML = blocks.map(renderSamplesCollection).join("");
+}
+
+function renderSamplesFilters() {
+  const pool = samplesInCollection();
+
+  const criterionCounts = new Map();
+  pool.forEach((item) => {
+    item.criteria.forEach((id) => criterionCounts.set(id, (criterionCounts.get(id) || 0) + 1));
+  });
+  const criterionIds = [...criterionCounts.keys()].sort(compareCriterionIds);
+  if (state.samplesCriterion !== "all" && !criterionCounts.has(state.samplesCriterion)) {
+    state.samplesCriterion = "all";
+  }
+  el.samplesCriterionFilter.innerHTML = `
+    <option value="all">كل المحكات (${formatNumber(criterionIds.length)})</option>
+    ${criterionIds
+      .map((id) => {
+        const text = sampleCriterionText(id);
+        return `<option value="${escapeHtml(id)}" title="${escapeHtml(text)}">${escapeHtml(id)} — ${countSamples(criterionCounts.get(id))}</option>`;
+      })
+      .join("")}
+  `;
+  el.samplesCriterionFilter.value = state.samplesCriterion;
+
+  const groupCounts = new Map();
+  pool.forEach((item) => groupCounts.set(item.groupInfo.id, (groupCounts.get(item.groupInfo.id) || 0) + 1));
+  if (state.samplesGroup !== "all" && !groupCounts.has(state.samplesGroup)) state.samplesGroup = "all";
+
+  const collections =
+    state.samplesCollection === "all"
+      ? samples.collections
+      : samples.collections.filter((collection) => collection.id === state.samplesCollection);
+  const groupOption = (group) =>
+    `<option value="${escapeHtml(group.id)}">${escapeHtml(group.name)} (${formatNumber(groupCounts.get(group.id))})</option>`;
+  const options = collections
+    .map((collection) => {
+      const groups = collection.groups.filter((group) => groupCounts.has(group.id));
+      if (!groups.length) return "";
+      const rendered = groups.map(groupOption).join("");
+      return collections.length > 1 ? `<optgroup label="${escapeHtml(collection.name)}">${rendered}</optgroup>` : rendered;
+    })
+    .join("");
+  const orphanOption =
+    state.samplesCollection === "all" && groupCounts.has("_other")
+      ? `<option value="_other">عينات غير مصنفة (${formatNumber(groupCounts.get("_other"))})</option>`
+      : "";
+  el.samplesGroupFilter.innerHTML = `<option value="all">كل الفئات</option>${options}${orphanOption}`;
+  el.samplesGroupFilter.value = state.samplesGroup;
+}
+
+function renderSamplesSummary(shown) {
+  const scopeCollections =
+    state.samplesCollection === "all"
+      ? samples.collections
+      : samples.collections.filter((collection) => collection.id === state.samplesCollection);
+  const scopeGroups = scopeCollections.flatMap((collection) => collection.groups);
+  const practices = scopeGroups.filter((group) => group.required).length;
+  const groupLabel =
+    practices === scopeGroups.length ? "الممارسات" : practices === 0 ? "الفئات" : "الممارسات والفئات";
+  const shownGroups = new Set(shown.filter((item) => item.collectionInfo).map((item) => item.groupInfo.id)).size;
+  const shownCriteria = new Set(shown.flatMap((item) => item.criteria)).size;
+  const programCriteria = programs[samplesProgram()]?.criteria.length || 0;
+  const pages = shown.reduce((sum, item) => sum + (Number(item.pages) || 0), 0);
+  const scopeName = state.samplesCollection === "all" ? "كل المجموعات" : scopeCollections[0]?.name || "";
+
+  el.samplesSummary.innerHTML = `
+    ${metric("العينات المعروضة", formatNumber(shown.length), `من ${countSamples(samples.items.length)} في البنك`)}
+    ${metric(groupLabel, formatNumber(shownGroups), `من ${formatNumber(scopeGroups.length)} في ${escapeHtml(scopeName)}`)}
+    ${metric(
+      "المحكات المغطاة",
+      formatNumber(shownCriteria),
+      programCriteria ? `من ${formatNumber(programCriteria)} محكاً في البكالوريوس` : "محكات تخدمها العينات المعروضة",
+    )}
+    ${metric(
+      "مجموع الصفحات",
+      formatNumber(pages),
+      shown.length ? `بمتوسط ${formatDecimal(pages / shown.length)} صفحة للعينة` : "لا عينات معروضة",
+    )}
+  `;
+}
+
+function renderSamplesCollection({ collection, groups }) {
+  const total = groups.reduce((sum, entry) => sum + entry.items.length, 0);
+  return `
+    <section class="samples-collection" aria-labelledby="sc-${escapeHtml(collection.id)}">
+      <header class="samples-collection-head">
+        <div>
+          <h2 id="sc-${escapeHtml(collection.id)}">${escapeHtml(collection.name)}</h2>
+          ${collection.description ? `<p>${escapeHtml(collection.description)}</p>` : ""}
+        </div>
+        <span class="state-pill muted">${countSamples(total)}</span>
+      </header>
+      ${groups.map(renderSamplesGroup).join("")}
+    </section>
+  `;
+}
+
+function renderSamplesGroup({ group, items }) {
+  const scope = group.required
+    ? `
+      <dl class="scope-row">
+        <div><dt>الشواهد المطلوبة</dt><dd>${escapeHtml(group.required)}</dd></div>
+        ${group.purpose ? `<div><dt>الغرض</dt><dd>${escapeHtml(group.purpose)}</dd></div>` : ""}
+        ${group.importance ? `<div class="scope-importance"><dt>الأهمية</dt><dd><span class="state-pill ok">${escapeHtml(group.importance)}</span></dd></div>` : ""}
+      </dl>
+    `
+    : group.description
+      ? `<p class="samples-group-desc">${escapeHtml(group.description)}</p>`
+      : "";
+
+  return `
+    <section class="samples-group" aria-labelledby="sg-${escapeHtml(group.id)}">
+      <header class="samples-group-head">
+        <h3 id="sg-${escapeHtml(group.id)}">${escapeHtml(group.name)}</h3>
+        <span>${countSamples(items.length)}</span>
+        ${
+          safeExternalUrl(group.url || "")
+            ? `<a class="text-button" href="${escapeHtml(safeExternalUrl(group.url))}" target="_blank" rel="noopener">${icon("i-external")} فتح المجلد</a>`
+            : ""
+        }
+      </header>
+      ${scope}
+      <div class="doc-grid samples-grid">
+        ${items.map(renderSampleCard).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderSampleCard(item) {
+  const program = samplesProgram();
+  const url = safeExternalUrl(item.url);
+  const folderUrl = url ? "" : safeExternalUrl(item.groupInfo?.url || item.collectionInfo?.url || "");
+  const list = (values, ordered) => {
+    const tag = ordered ? "ol" : "ul";
+    return `<${tag}>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</${tag}>`;
+  };
+  const section = (title, iconId, values, ordered, mod = "") =>
+    (values || []).length
+      ? `<div class="build-section ${mod}"><h5>${icon(iconId)} ${title}</h5>${list(values, ordered)}</div>`
+      : "";
+  const buildSections = [
+    section("البنية", "i-file", item.structure, true),
+    section("لماذا تصلح نموذجاً", "i-check", item.why_model, false, "is-why"),
+    section("خطوات البناء", "i-route", item.how_to_build, true, "is-steps"),
+    section("أخطاء تُتجنَّب", "i-alert", item.pitfalls, false, "is-warn"),
+  ].join("");
+  const meta = [item.audience, item.pages ? countPages(Number(item.pages)) : ""].filter(Boolean);
+
+  return `
+    <article class="doc-card sample-card" id="sample-${escapeHtml(item.id)}">
+      <header class="sample-head">
+        <div class="sample-pills">
+          ${item.type ? `<span class="state-pill info">${escapeHtml(item.type)}</span>` : ""}
+          ${item.year ? `<span class="state-pill muted">${escapeHtml(String(item.year).replace(/\s*هـ$/, ""))}هـ</span>` : ""}
+        </div>
+        <h4 class="sample-title">${escapeHtml(item.title || item.file || item.id)}</h4>
+        ${meta.length ? `<p class="doc-issuer">${meta.map(escapeHtml).join(" · ")}</p>` : ""}
+      </header>
+
+      ${item.summary ? `<p class="sample-summary">${escapeHtml(item.summary)}</p>` : ""}
+
+      ${
+        (item.data_sources || []).length
+          ? `<div class="sample-sources">
+              <span class="doc-criteria-label">مصادر البيانات</span>
+              <div class="doc-tags">
+                ${item.data_sources.map((source) => `<span class="tag soft">${escapeHtml(source)}</span>`).join("")}
+              </div>
+            </div>`
+          : ""
+      }
+
+      ${
+        buildSections
+          ? `<details class="sample-build">
+              <summary>${icon("i-pen")}<span>كيف تُبنى مثلها</span></summary>
+              <div class="build-body">${buildSections}</div>
+            </details>`
+          : ""
+      }
+
+      ${
+        item.criteria.length
+          ? `<div class="doc-criteria">
+              <span class="doc-criteria-label">المحكات التي تخدمها (${formatNumber(item.criteria.length)})</span>
+              <div class="chip-row">
+                ${item.criteria
+                  .map(
+                    (id) =>
+                      `<button class="criterion-chip" type="button" data-open-criterion="${escapeHtml(id)}" data-program="${escapeHtml(program)}" title="${escapeHtml(sampleCriterionText(id))}">${escapeHtml(id)}</button>`,
+                  )
+                  .join("")}
+              </div>
+            </div>`
+          : ""
+      }
+
+      <footer class="sample-actions">
+        ${
+          url
+            ? `<a class="text-button" href="${escapeHtml(url)}" target="_blank" rel="noopener">${icon("i-external")} فتح العينة</a>`
+            : folderUrl
+              ? `<a class="text-button" href="${escapeHtml(folderUrl)}" target="_blank" rel="noopener">${icon("i-external")} فتح مجلد العينة</a>`
+              : `<span class="sample-pending" aria-disabled="true">${icon("i-lock")} الرابط قيد الإضافة</span>`
+        }
+        <button class="text-button" type="button" data-copy-sample="${escapeHtml(item.id)}" title="${escapeHtml(item.path)}">
+          ${icon("i-copy")} نسخ المسار
+        </button>
+        ${item.evidence_code ? `<small class="sample-code">رمز الدليل في البرنامج: <bdi>${escapeHtml(item.evidence_code)}</bdi></small>` : ""}
+      </footer>
+    </article>
+  `;
+}
+
+function samplesForCriterion(criterionId) {
+  if (!samples || state.program !== samplesProgram()) return "";
+  const matches = samples.items
+    .filter((item) => item.criteria.includes(criterionId))
+    .sort((a, b) => Number(b.criteria[0] === criterionId) - Number(a.criteria[0] === criterionId));
+  if (!matches.length) return "";
+
+  return `
+    <div class="criterion-institutional criterion-samples">
+      <div class="ci-head">
+        ${icon("i-layers")}
+        <span>نماذج تطبيقية لهذا المحك</span>
+        <button class="text-button" type="button" data-goto-samples="${escapeHtml(criterionId)}">
+          عرض في بنك النماذج (${formatNumber(matches.length)})
+        </button>
+      </div>
+      <div class="chip-row">
+        ${matches
+          .slice(0, 6)
+          .map(
+            (item) =>
+              `<button class="tag soft sample-tag" type="button" data-goto-samples="${escapeHtml(criterionId)}" data-sample="${escapeHtml(item.id)}" title="${escapeHtml(item.summary || "")}">${escapeHtml(item.title || item.file || item.id)}</button>`,
+          )
+          .join("")}
+        ${matches.length > 6 ? `<span class="tag soft">+${formatNumber(matches.length - 6)}</span>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function openSamplesForCriterion(criterionId, sampleId) {
+  state.view = "samples";
+  state.pickerOpen = false;
+  state.samplesCollection = "all";
+  state.samplesGroup = "all";
+  state.samplesQuery = "";
+  el.samplesSearch.value = "";
+  state.samplesCriterion = criterionId || "all";
+  render();
+
+  const card = sampleId ? document.getElementById(`sample-${sampleId}`) : null;
+  if (!card) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("is-highlight");
+  window.setTimeout(() => card.classList.remove("is-highlight"), 1800);
+}
+
+function resetSamplesFilters() {
+  state.samplesQuery = "";
+  state.samplesCriterion = "all";
+  state.samplesGroup = "all";
+  el.samplesSearch.value = "";
+  renderSamples();
+}
+
+async function copySamplePath(id) {
+  const item = samples?.items.find((entry) => entry.id === id);
+  if (!item) return;
+  const copied = await copyText(item.path);
+  showToast(copied ? "تم نسخ مسار العينة في الون درايف." : "تعذر النسخ من المتصفح.");
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* ننتقل إلى الطريقة البديلة */
+  }
+  try {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "0";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    const copied = document.execCommand("copy");
+    area.remove();
+    return copied;
+  } catch {
+    return false;
+  }
 }
