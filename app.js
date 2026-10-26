@@ -845,7 +845,7 @@ function renderCriterion() {
     <div>
       <div class="criterion-meta">
         <span>${criterion.standardName}</span>
-        <span>محك <bdi>${criterion.id}</bdi></span>
+        <span>محك <bdi dir="ltr">${criterion.id}</bdi></span>
         <span>${formatNumber(criterion.evidencePlan.length)} أدلة</span>
       </div>
       <h2>${criterion.id}</h2>
@@ -2266,6 +2266,11 @@ function safeExternalUrl(value) {
   return /^https?:\/\//i.test(url) ? url : "";
 }
 
+function sampleYear(value) {
+  const year = String(value).trim();
+  return /(هـ|م)$/.test(year) ? year : `${year}هـ`;
+}
+
 function samplesProgram() {
   return samples?.metadata?.program || "ug";
 }
@@ -2305,7 +2310,7 @@ function renderSamples() {
       <div class="samples-empty">
         ${icon("i-alert")}
         <h3>تعذر تحميل بنك النماذج</h3>
-        <p>تحقق من وجود الملف <bdi>data/samples.json</bdi> وصحة بنيته، ثم أعد تحميل الصفحة.</p>
+        <p>تحقق من وجود الملف <bdi dir="ltr">data/samples.json</bdi> وصحة بنيته، ثم أعد تحميل الصفحة.</p>
       </div>
     `;
     return;
@@ -2364,7 +2369,7 @@ function renderSamples() {
       <div class="samples-empty">
         ${icon("i-layers")}
         <h3>لم تُضف عينات بعد</h3>
-        <p>تُضاف البطاقات في <bdi>data/samples.json</bdi> ضمن الحقل <bdi>items</bdi>.</p>
+        <p>تُضاف البطاقات في <bdi dir="ltr">data/samples.json</bdi> ضمن الحقل <bdi dir="ltr">items</bdi>.</p>
       </div>
     `;
     return;
@@ -2554,7 +2559,7 @@ function renderSampleCard(item) {
       <header class="sample-head">
         <div class="sample-pills">
           ${item.type ? `<span class="state-pill info">${escapeHtml(item.type)}</span>` : ""}
-          ${item.year ? `<span class="state-pill muted">${escapeHtml(String(item.year).replace(/\s*هـ$/, ""))}هـ</span>` : ""}
+          ${item.year ? `<span class="state-pill muted">${escapeHtml(sampleYear(item.year))}</span>` : ""}
         </div>
         <h4 class="sample-title">${escapeHtml(item.title || item.file || item.id)}</h4>
         ${meta.length ? `<p class="doc-issuer">${meta.map(escapeHtml).join(" · ")}</p>` : ""}
@@ -2609,7 +2614,7 @@ function renderSampleCard(item) {
         <button class="text-button" type="button" data-copy-sample="${escapeHtml(item.id)}" title="${escapeHtml(item.path)}">
           ${icon("i-copy")} نسخ المسار
         </button>
-        ${item.evidence_code ? `<small class="sample-code">رمز الدليل في البرنامج: <bdi>${escapeHtml(item.evidence_code)}</bdi></small>` : ""}
+        ${item.evidence_code ? `<small class="sample-code">رمز الدليل في البرنامج: <bdi dir="ltr">${escapeHtml(item.evidence_code)}</bdi></small>` : ""}
       </footer>
     </article>
   `;

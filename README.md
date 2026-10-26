@@ -63,7 +63,7 @@
 | الجزء | المحتوى |
 |---|---|
 | `metadata` | `intro` (مقدمة التبويب)، `rule` (القاعدة)، `access_note` (ملاحظة الوصول)، `source_program`، `drive_root` (جذر المجلد في الون درايف)، `program` (`ug`) |
-| `collections[]` | المجموعات الكبرى (لجنة الاختبارات والقياس والتقويم، تقارير استطلاعات الرأي): `id`، `name`، `scope`، `folder`، `description`، و`groups[]` |
+| `collections[]` | المجموعات الكبرى (الوثائق الأساسية، لجنة الاختبارات والقياس والتقويم، تقارير استطلاعات الرأي): `id`، `name`، `scope`، `folder`، `description`، و`groups[]` |
 | `collections[].groups[]` | الفئة/الممارسة: `id`، `name`، `folder`، ثم إما `required` و`purpose` و`importance` (نطاق شواهد اللجنة) أو `description` |
 | `items[]` | بطاقة لكل عينة (الحقول أدناه) |
 
