@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="مرجع عمل الدراسة الذاتية: حصر الأدلة وقياس جاهزية المحكات، ومسار العمل، والقوالب المعتمدة، واللوائح المؤسسية، ودليل الكتابة."
+      content="مرجع عمل الدراسة الذاتية: حصر الأدلة وقياس جاهزية المحكات، ومسار العمل، والقوالب المعتمدة، واللوائح المؤسسية، ودليل الكتابة، وبنك النماذج."
     />
     <title>جاهزية الدراسة الذاتية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -98,6 +98,20 @@
         <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
         <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
       </symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24">
+        <path d="m12 2 10 5-10 5L2 7z" />
+        <path d="m2 12 10 5 10-5" />
+        <path d="m2 17 10 5 10-5" />
+      </symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24">
+        <rect x="4" y="11" width="16" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </symbol>
+      <symbol id="i-external" viewBox="0 0 24 24">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+        <path d="M15 3h6v6" />
+        <path d="M10 14 21 3" />
+      </symbol>
     </svg>
 
     <div class="app-shell">
@@ -135,6 +149,10 @@
         <button class="mode-tab" type="button" role="tab" data-view="writing" aria-selected="false">
           <svg><use href="#i-pen"></use></svg>
           <span>دليل الكتابة</span>
+        </button>
+        <button class="mode-tab" type="button" role="tab" data-view="samples" aria-selected="false">
+          <svg><use href="#i-layers"></use></svg>
+          <span>بنك النماذج</span>
         </button>
         <button class="mode-tab" type="button" role="tab" data-view="library" aria-selected="false">
           <svg><use href="#i-book"></use></svg>
@@ -309,6 +327,48 @@
 
         <div class="sub-tabs" id="writingTabs" role="tablist" aria-label="أقسام دليل الكتابة"></div>
         <section class="writing-body" id="writingBody"></section>
+      </section>
+
+      <section class="doc-view" id="samplesView" hidden>
+        <section class="page-hero">
+          <div class="page-hero-text">
+            <p class="eyebrow">نماذج تطبيقية</p>
+            <h2>بنك النماذج</h2>
+            <p class="page-hero-lead" id="samplesIntro"></p>
+            <p class="samples-source" id="samplesSource"></p>
+          </div>
+          <div class="page-hero-actions">
+            <button class="text-button" id="printSamples" type="button">
+              <svg><use href="#i-print"></use></svg>
+              طباعة
+            </button>
+          </div>
+        </section>
+
+        <div class="segmented" id="samplesCollections" role="tablist" aria-label="مجموعة العينات"></div>
+
+        <div class="samples-notes" id="samplesNotes">
+          <div class="rule-banner" id="samplesRule"></div>
+          <p class="access-note" id="samplesAccess"></p>
+        </div>
+
+        <section class="library-controls samples-controls" id="samplesControls" aria-label="تصفية العينات">
+          <div class="searchbox library-searchbox">
+            <svg><use href="#i-search"></use></svg>
+            <input id="samplesSearch" type="search" placeholder="بحث في العنوان أو الملخص أو مصادر البيانات أو الرمز" autocomplete="off" />
+          </div>
+          <label class="select-field">
+            <span>المحك</span>
+            <select id="samplesCriterionFilter"></select>
+          </label>
+          <label class="select-field">
+            <span>الفئة</span>
+            <select id="samplesGroupFilter"></select>
+          </label>
+        </section>
+
+        <section class="overview-band" id="samplesSummary"></section>
+        <div class="samples-body" id="samplesBody" aria-live="polite"></div>
       </section>
 
       <section class="library-view" id="libraryView" hidden>
